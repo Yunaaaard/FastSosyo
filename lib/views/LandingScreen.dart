@@ -10,6 +10,13 @@ class Landingscreen extends StatefulWidget {
 class _LandingscreenState extends State<Landingscreen> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Fast Sosyo'),
+      ),
+      body: const Center(
+        child: Text('Welcome to Fast Sosyo!'),
+      ),
+    );
   }
 }
