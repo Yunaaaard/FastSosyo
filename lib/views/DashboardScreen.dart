@@ -88,9 +88,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                 children: [
                                   Text('Total Ordered Value', style: TextStyle(fontSize: 13, color: Colors.black54)),
                                   SizedBox(height: 4),
-                                  Text(
+                                  _pesoText(
                                     stats.totalOrderedValue,
-                                    style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
+                                    amountStyle: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Poppins',
+                                    ),
+                                    symbolStyle: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -154,7 +164,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         'Sosyo Loan',
                         style: TextStyle(
                           color: Color(0xFF275DCE),
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -170,66 +180,70 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF275DCE),
-        unselectedItemColor: Colors.black38,
-        showUnselectedLabels: true,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/icons/HomeIcon.svg',
-              height: 20,
-              color: Colors.black38,
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/icons/HomeIcon.svg',
-              height: 23,
-              color: const Color(0xFF275DCE),
-            ),
-            label: 'Home',
+      bottomNavigationBar: navigationBar(),
+    );
+  }
+
+  BottomNavigationBar navigationBar() {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: const Color(0xFF275DCE),
+      unselectedItemColor: Colors.black38,
+      showUnselectedLabels: true,
+      items: [
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/HomeIcon.svg',
+            height: 20,
+            color: Colors.black38,
           ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/icons/LoanIcon.svg',
-              height: 20,
-              color: Colors.black38,
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/icons/LoanIcon.svg',
-              height: 23,
-              color: const Color(0xFF275DCE),
-            ),
-            label: 'Loans',
+          activeIcon: SvgPicture.asset(
+            'assets/icons/HomeIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
           ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/icons/HistoryIcon.svg',
-              height: 20,
-              color: Colors.black38,
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/icons/HistoryIcon.svg',
-              height: 23,
-              color: const Color(0xFF275DCE),
-            ),
-            label: 'History',
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/LoanIcon.svg',
+            height: 20,
+            color: Colors.black38,
           ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/icons/ProfileIcon.svg',
-              height: 20,
-              color: Colors.black38,
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/icons/ProfileIcon.svg',
-              height: 23,
-              color: const Color(0xFF275DCE),
-            ),
-            label: 'Profile',
+          activeIcon: SvgPicture.asset(
+            'assets/icons/LoanIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
           ),
-        ],
-      ),
+          label: 'Loans',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/HistoryIcon.svg',
+            height: 20,
+            color: Colors.black38,
+          ),
+          activeIcon: SvgPicture.asset(
+            'assets/icons/HistoryIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
+          ),
+          label: 'History',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/ProfileIcon.svg',
+            height: 20,
+            color: Colors.black38,
+          ),
+          activeIcon: SvgPicture.asset(
+            'assets/icons/ProfileIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
+          ),
+          label: 'Profile',
+        ),
+      ],
     );
   }
 
@@ -296,14 +310,14 @@ class _DashboardPageState extends State<DashboardPage> {
                 crossAxisAlignment: CrossAxisAlignment.center, // center vertically
                 children: [
                   Container(
-                    height: 60,
-                    width: 60,
+                    height: 65,
+                    width: 65,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(5.0),
+                      padding: const EdgeInsets.all(4.0),
                       child: _buildBrandLogo(brand.logo),
                     ),
                   ),
@@ -319,32 +333,38 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             const Text(
                               'Ordered Amount',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 17),
                             ),
-                            Text(
+                            _pesoText(
                               brand.amount,
-                              style: const TextStyle(
+                              amountStyle: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 17,
+                                fontFamily: 'Poppins',
+                              ),
+                              symbolStyle: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Product Count',
-                              style: TextStyle(color: Colors.white, fontSize: 15),
+                              style: TextStyle(color: Colors.white, fontSize: 17),
                             ),
                             Text(
                               brand.count,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 18,
                               ),
                             ),
                           ],
@@ -373,6 +393,27 @@ class _DashboardPageState extends State<DashboardPage> {
         fit: BoxFit.contain,
       );
     }
+  }
+
+  String _cleanPesoValue(String value) {
+    final String clean = value.trim().replaceAll('₱', '').trim();
+    return clean;
+  }
+
+  Widget _pesoText(
+    String value, {
+    required TextStyle amountStyle,
+    required TextStyle symbolStyle,
+  }) {
+    final String clean = _cleanPesoValue(value);
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(text: '₱ ', style: symbolStyle),
+          TextSpan(text: clean, style: amountStyle),
+        ],
+      ),
+    );
   }
 
   AppBar appBar() {
