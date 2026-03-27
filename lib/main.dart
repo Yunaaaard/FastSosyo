@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Poppins',
       ),
-      home: const DashboardPage(),
+      home: const Landingscreen(),
       routes: {
         '/RegisterNumber': (context) => const RegisterNumberPage(),
       },

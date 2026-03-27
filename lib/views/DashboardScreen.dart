@@ -14,13 +14,48 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   final DataController dataController = DataController(
     brandCategories: const [
-      // Placeholder data for testing hehe
+      // Sample data for scroll testing
       BrandCategory(
         brand: 'Nestle',
         image: 'assets/images/PlaceHolderCarousel.png',
-        logo: 'assets/icons/SosyoLoanButtonIcon.svg',
-        amount: '₱ 0.00',
-        count: '0',
+        logo: 'assets/images/FastSosyo.png',
+        amount: '₱ 3,000.00',
+        count: '12',
+      ),
+      BrandCategory(
+        brand: 'Coffee',
+        image: 'assets/images/PlaceHolderCarousel.png',
+        logo: 'assets/images/FastSosyo.png',
+        amount: '₱ 8,540.75',
+        count: '37',
+      ),
+      BrandCategory(
+        brand: 'Milk',
+        image: 'assets/images/PlaceHolderCarousel.png',
+        logo: 'assets/images/FastSosyo.png',
+        amount: '₱ 1,240.00',
+        count: '9',
+      ),
+      BrandCategory(
+        brand: 'Snacks',
+        image: 'assets/images/PlaceHolderCarousel.png',
+        logo: 'assets/images/FastSosyo.png',
+        amount: '₱ 12,430.20',
+        count: '54',
+      ),
+      BrandCategory(
+        brand: 'Beverages',
+        image: 'assets/images/PlaceHolderCarousel.png',
+        logo: 'assets/images/FastSosyo.png',
+        amount: '₱ 6,980.10',
+        count: '28',
+      ),
+      BrandCategory(
+        brand: 'Essentials',
+        image: 'assets/images/PlaceHolderCarousel.png',
+        logo: 'assets/images/FastSosyo.png',
+        amount: '₱ 2,150.50',
+        count: '14',
       ),
     ],
     dashboardStats: const DashboardStats(
@@ -173,9 +208,23 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            // Brand Card (logo, ordered amount, product count only)
-            buildBrandCard(brand),
+            const SizedBox(height: 18),
+            // Title header for brand categories
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 25.0),
+              child: Text(
+                'BRAND CATEGORIES',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF64748B),
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 3),
+            // Brand cards list for scroll testing
+            ...dataController.brandCategories.map(buildBrandCard),
             const SizedBox(height: 24),
           ],
         ),
@@ -418,7 +467,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   AppBar appBar() {
     return AppBar(
-      backgroundColor: Colors.white.withOpacity(0.0),
+      backgroundColor: Colors.white,
       elevation: 0.0,
       centerTitle: false,
       automaticallyImplyLeading: false,
@@ -434,7 +483,7 @@ class _DashboardPageState extends State<DashboardPage> {
             'FASTSOSYO',
             style: TextStyle(
               color: Color(0xFF275DCE),
-              fontSize: 25,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -442,7 +491,7 @@ class _DashboardPageState extends State<DashboardPage> {
           IconButton(
             icon: SvgPicture.asset(
               'assets/icons/SearchIcon.svg',
-              height: 18,
+              height: 22,
             ),
             onPressed: () {
               // TODO: Implement search action
@@ -451,7 +500,7 @@ class _DashboardPageState extends State<DashboardPage> {
           IconButton(
             icon: SvgPicture.asset(
               'assets/icons/NotificationIcon.svg',
-              height: 18,
+              height: 22,
             ),
             onPressed: () {
               // TODO: Implement notification action
