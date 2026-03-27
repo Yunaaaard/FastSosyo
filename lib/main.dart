@@ -1,3 +1,4 @@
+import 'package:fast_sosyo/views/DashboardScreen.dart';
 import 'package:fast_sosyo/views/LandingScreen.dart';
 import 'package:fast_sosyo/views/RegisterNumber.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Poppins',
       ),
-      home: const Landingscreen(),
+      home: const DashboardPage(),
       routes: {
         '/RegisterNumber': (context) => const RegisterNumberPage(),
       },

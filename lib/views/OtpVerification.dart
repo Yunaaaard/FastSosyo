@@ -1,4 +1,5 @@
 
+import 'package:fast_sosyo/views/DashboardScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -100,19 +101,19 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 24.0),
                           child: RichText(
                             textAlign: TextAlign.center,
-                            text: TextSpan(
-                              style: const TextStyle(
+                            text: const TextSpan(
+                              style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,
                               ),
                               children: [
-                                const TextSpan(
+                                TextSpan(
                                   text: 'Enter OTP sent to ',
                                   style: TextStyle(fontFamily: 'Poppins'),
                                 ),
                                 TextSpan(
                                   text: '+93 9453482113',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Poppins',
                                     color: Color(0xFF275DCE),
                                     fontWeight: FontWeight.w500,
@@ -173,7 +174,13 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => DashboardPage(),
+                                  ),
+                                );
+                              },
                               child: const Text(
                                 'Continue',
                                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
