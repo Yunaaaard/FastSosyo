@@ -1,5 +1,7 @@
 
+
 import 'package:flutter/material.dart';
+import 'UploadIDScreen.dart';
 
 class CheckEligibilityPage extends StatelessWidget {
 	const CheckEligibilityPage({Key? key}) : super(key: key);
@@ -8,21 +10,7 @@ class CheckEligibilityPage extends StatelessWidget {
 	Widget build(BuildContext context) {
 		return Scaffold(
 			backgroundColor: const Color(0xFFF7FAFF),
-			appBar: AppBar(
-				backgroundColor: Colors.transparent,
-				elevation: 0,
-				centerTitle: true,
-				title: const Text(
-					'SOSYO LOAN',
-					style: TextStyle(
-						color: Color(0xFF275DCE),
-						fontWeight: FontWeight.bold,
-						fontSize: 20,
-						letterSpacing: 1.2,
-					),
-				),
-				automaticallyImplyLeading: false,
-			),
+			appBar: appBar(),
 			body: SingleChildScrollView(
 				child: Padding(
 					padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -96,7 +84,14 @@ class CheckEligibilityPage extends StatelessWidget {
 														),
 														padding: const EdgeInsets.symmetric(vertical: 16),
 													),
-													onPressed: () {},
+																								onPressed: () {
+																									Navigator.push(
+																										context,
+																										MaterialPageRoute(
+																											builder: (context) => const UploadIDScreen(),
+																										),
+																									);
+																								},
 													child: const Text(
 														'Check My Eligibility',
 														style: TextStyle(
@@ -182,6 +177,24 @@ class CheckEligibilityPage extends StatelessWidget {
 			),
 			bottomNavigationBar: _BottomNavBar(selectedIndex: 0),
 		);
+	}
+
+	AppBar appBar() {
+	  return AppBar(
+				backgroundColor: Colors.transparent,
+				elevation: 0,
+				centerTitle: true,
+				title: const Text(
+					'SOSYO LOAN',
+					style: TextStyle(
+						color: Color(0xFF275DCE),
+						fontWeight: FontWeight.bold,
+						fontSize: 20,
+						letterSpacing: 1.2,
+					),
+				),
+				automaticallyImplyLeading: false,
+			);
 	}
 }
 
