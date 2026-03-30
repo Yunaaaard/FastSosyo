@@ -1,3 +1,7 @@
+
+import 'dart:async';
+
+import 'package:fast_sosyo/views/CheckEligibility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../models/brand_category.dart';
@@ -11,48 +15,49 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
+
 class _DashboardPageState extends State<DashboardPage> {
   final DataController dataController = DataController(
     brandCategories: const [
-      // Sample data for scroll testing
+      // Sample data for brand categories
       BrandCategory(
         brand: 'Nestle',
-        image: 'assets/images/PlaceHolderCarousel.png',
-        logo: 'assets/images/FastSosyo.png',
+        image: 'assets/images/z.png',
+        logo: 'assets/images/nestle-sample-logo.png',
         amount: '₱ 3,000.00',
         count: '12',
       ),
       BrandCategory(
         brand: 'Coffee',
-        image: 'assets/images/PlaceHolderCarousel.png',
+        image: 'assets/images/y.png',
         logo: 'assets/images/FastSosyo.png',
         amount: '₱ 8,540.75',
         count: '37',
       ),
       BrandCategory(
         brand: 'Milk',
-        image: 'assets/images/PlaceHolderCarousel.png',
-        logo: 'assets/images/FastSosyo.png',
+        image: 'assets/images/z.png',
+        logo: 'assets/images/nestle-sample-logo.png',
         amount: '₱ 1,240.00',
         count: '9',
       ),
       BrandCategory(
         brand: 'Snacks',
-        image: 'assets/images/PlaceHolderCarousel.png',
+        image: 'assets/images/meow_ad.png',
         logo: 'assets/images/FastSosyo.png',
         amount: '₱ 12,430.20',
         count: '54',
       ),
       BrandCategory(
         brand: 'Beverages',
-        image: 'assets/images/PlaceHolderCarousel.png',
+        image: 'assets/images/x.png',
         logo: 'assets/images/FastSosyo.png',
         amount: '₱ 6,980.10',
         count: '28',
       ),
       BrandCategory(
         brand: 'Essentials',
-        image: 'assets/images/PlaceHolderCarousel.png',
+        image: 'assets/images/z.png',
         logo: 'assets/images/FastSosyo.png',
         amount: '₱ 2,150.50',
         count: '14',
@@ -64,12 +69,45 @@ class _DashboardPageState extends State<DashboardPage> {
     ),
   );
 
-  BrandCategory get currentBrand => dataController.brandCategories.first;
-  DashboardStats get stats => dataController.dashboardStats;
+  // Advertisement images for carousel (separate from brand categories)
+  final List<String> _adImages = [
+    'assets/images/x.png',
+    'assets/images/y.png',
+    'assets/images/z.png',
+    // Add more ad images as needed
+  ];
+
+  final PageController _pageController = PageController(viewportFraction: 1.0);
+  int _currentPage = 0;
+  late final DashboardStats stats;
+  late final List<BrandCategory> brandCategories;
+  late final Timer _carouselTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    brandCategories = dataController.brandCategories;
+    stats = dataController.dashboardStats;
+    _carouselTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (_adImages.length <= 1) return;
+      int nextPage = (_currentPage + 1) % _adImages.length;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _carouselTimer.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final BrandCategory brand = currentBrand;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: appBar(),
@@ -77,17 +115,74 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 60),
-            // Header Image
+            const SizedBox(height: 75),
+            // Advertisement Carousel inside Card
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  brand.image,
-                  height: 140,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+              child: Container(
+                height: 160,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    // Carousel
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: SizedBox(
+                        height: 160,
+                        width: double.infinity,
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: _adImages.length,
+                          onPageChanged: (index) {
+                            setState(() {
+                              _currentPage = index;
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            final imagePath = _adImages[index];
+                            return Image.asset(
+                              imagePath,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    // Carousel indicators (overlayed at bottom center)
+                    if (_adImages.length > 1)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 12,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(_adImages.length, (index) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: _currentPage == index ? 18 : 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                color: _currentPage == index ? const Color(0xFF275DCE) : Colors.black26,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -148,14 +243,14 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                           Expanded(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 12.0),
+                              padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text('Total Products', style: TextStyle(fontSize: 13, color: Colors.black54)),
                                   SizedBox(height: 4),
-                                  Text(stats.totalProducts, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black87)),
+                                  Text(stats.totalProducts, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.black)),
                                 ],
                               ),
                             ),
@@ -165,45 +260,69 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Sosyo Loan Card with SVG Icon
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Blue button — icon only
-                      Container(
-                        height: 65,
-                        width: 65,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF275DCE),
+                  // Sosyo Loan Card with SVG Icon (Clickable)
+                  StatefulBuilder(
+                    builder: (context, setLocalState) {
+                      bool isPressed = false;
+                      return Listener(
+                        onPointerDown: (_) => setLocalState(() => isPressed = true),
+                        onPointerUp: (_) => setLocalState(() => isPressed = false),
+                        onPointerCancel: (_) => setLocalState(() => isPressed = false),
+                        child: InkWell(
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0xFF1A3D8A),
-                              blurRadius: 0,
-                              spreadRadius: 0,
-                              offset: Offset(3, 2),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: SvgPicture.asset(
-                            'assets/icons/SosyoLoanButtonIcon.svg',
-                            height: 28,
-                            width: 28,
+                          splashColor: const Color(0xFF1A3D8A).withOpacity(0.2),
+                          highlightColor: const Color(0xFF1A3D8A).withOpacity(0.1),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const CheckEligibilityPage(),
+                              ),
+                            );
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Blue button — icon only
+                              Container(
+                                height: 65,
+                                width: 65,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF275DCE),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: isPressed
+                                      ? []
+                                      : const [
+                                          BoxShadow(
+                                            color: Color(0xFF1A3D8A),
+                                            blurRadius: 0,
+                                            spreadRadius: 0,
+                                            offset: Offset(3, 2),
+                                          ),
+                                        ],
+                                ),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    'assets/icons/SosyoLoanButtonIcon.svg',
+                                    height: 28,
+                                    width: 28,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6), // spacing between button and label
+                              // Label below the button
+                              const Text(
+                                'Sosyo Loan',
+                                style: TextStyle(
+                                  color: Color(0xFF275DCE),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 6), // spacing between button and label
-                      // Label below the button
-                      const Text(
-                        'Sosyo Loan',
-                        style: TextStyle(
-                          color: Color(0xFF275DCE),
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -366,7 +485,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(4.0),
+                      padding: const EdgeInsets.all(10.0),
                       child: _buildBrandLogo(brand.logo),
                     ),
                   ),

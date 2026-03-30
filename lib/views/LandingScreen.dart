@@ -19,7 +19,7 @@ class _LandingscreenState extends State<Landingscreen> with TickerProviderStateM
     super.initState();
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 4000), // Slower fade-in
+      duration: const Duration(milliseconds: 3000), // Slower fade-in
     );
     _logoAnimation = CurvedAnimation(parent: _logoController, curve: Curves.easeIn);
     _logoController.forward();

@@ -12,7 +12,7 @@ class RegisterNumberPage extends StatefulWidget {
 
 class _RegisterNumberPageState extends State<RegisterNumberPage> {
   final TextEditingController _phoneController = TextEditingController();
-  String _countryCode = '+63';
+  final String _countryCode = '+63';
 
   @override
   void dispose() {
