@@ -30,7 +30,7 @@ class _DashboardPageState extends State<DashboardPage> {
       BrandCategory(
         brand: 'Coffee',
         image: 'assets/images/y.png',
-        logo: 'assets/images/FastSosyo.png',
+        logo: 'assets/images/nestle-sample-logo.png',
         amount: '₱ 8,540.75',
         count: '37',
       ),

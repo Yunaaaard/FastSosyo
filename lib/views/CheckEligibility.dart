@@ -166,12 +166,12 @@ class CheckEligibilityPage extends StatelessWidget {
 								subtitle: 'Get feedback on your application within minutes, not days.',
 							),
 							_ReasonCard(
-								number: 1,
+								number: 2,
 								title: 'No Collateral',
 								subtitle: 'Access credit without putting your assets at risk. High trust, low friction.',
 							),
 							_ReasonCard(
-								number: 1,
+								number: 3,
 								title: 'Flexible Terms',
 								subtitle: 'Repayment schedules that align with your unique monthly cash flow.',
 							),
