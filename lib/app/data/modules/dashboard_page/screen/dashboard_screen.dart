@@ -1,12 +1,10 @@
-
 import 'dart:async';
-
 import 'package:fast_sosyo/app/data/modules/check_eligibility/check_eligibility_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../models/brand_category.dart';
 import '../models/dashboard_stats.dart';
-import '../controllers/data_controller.dart';
+import '../controllers/dashboard_controller.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
