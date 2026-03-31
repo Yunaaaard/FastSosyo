@@ -90,12 +90,28 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          '₱ 25,000.00',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 32,
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '\u20B1', // Unicode for Peso sign
+                                style: const TextStyle(
+                                  fontFamily: 'Arial', // fallback font for peso
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 32,
+                                ),
+                              ),
+                              TextSpan(
+                                text: ' 25,000.00',
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 32,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 10),

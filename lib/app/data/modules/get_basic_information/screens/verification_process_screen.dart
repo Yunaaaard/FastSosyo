@@ -10,9 +10,11 @@ class VerifyPerson extends StatefulWidget {
   State<VerifyPerson> createState() => _VerifyPersonState();
 }
 
-class _VerifyPersonState extends State<VerifyPerson> {
+class _VerifyPersonState extends State<VerifyPerson>
+    with SingleTickerProviderStateMixin {  // ← required for AnimationController vsync
   int _seconds = 5;
   Timer? _timer;
+  late AnimationController _animationController;
 
   @override
   void initState() {
@@ -29,26 +31,45 @@ class _VerifyPersonState extends State<VerifyPerson> {
         });
       }
     });
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xF6F9FF),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 60),
-            SvgPicture.asset(
-              'assets/icons/verify-person-icon.svg',
-              height: 220,
+            AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                final scale = 1 + 0.08 * (_animationController.value - 0.5).abs();
+                final rotation = 0.08 * (_animationController.value - 0.5);
+                return Transform.rotate(
+                  angle: rotation,
+                  child: Transform.scale(
+                    scale: scale,
+                    child: child,
+                  ),
+                );
+              },
+              child: SvgPicture.asset(
+                'assets/icons/verify-person-icon.svg',
+                height: 220,
+              ),
             ),
             const SizedBox(height: 40),
             const Text(
