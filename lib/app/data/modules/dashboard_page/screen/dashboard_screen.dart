@@ -286,7 +286,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 width: 65,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF275DCE),
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(10),
                                   boxShadow: isPressed
                                       ? []
                                       : const [
@@ -420,7 +420,6 @@ class _DashboardPageState extends State<DashboardPage> {
         height: 170,
         child: Stack(
           children: [
-            // Background image
             Container(
               height: 170,
               width: double.infinity,
@@ -431,14 +430,12 @@ class _DashboardPageState extends State<DashboardPage> {
                   fit: BoxFit.cover,
                 ),
                 boxShadow: const [
-                  // Primary shadow — depth
                   BoxShadow(
                     color: Colors.black26,
                     blurRadius: 16,
                     spreadRadius: 2,
                     offset: Offset(0, 6),
                   ),
-                  // Secondary shadow — soft ambient glow
                   BoxShadow(
                     color: Colors.black12,
                     blurRadius: 30,
@@ -448,22 +445,24 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
             ),
-            // Gradient overlay at bottom
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
               child: Container(
-                height: 90,
+                height: 100,
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.82),
+                      Colors.black.withOpacity(0.0),
+                      Colors.black.withOpacity(0.38),
+                      Colors.black.withOpacity(0.55),
+                      Colors.black.withOpacity(0.92),
                     ],
+                    stops: const [0.0, 0.4, 0.5, 1.0],
                   ),
                 ),
               ),
@@ -473,7 +472,7 @@ class _DashboardPageState extends State<DashboardPage> {
               right: 20,
               bottom: 16,
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center, // center vertically
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     height: 65,
@@ -488,7 +487,6 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Labels and values grouped in rows, centered to the logo
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -499,20 +497,20 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             const Text(
                               'Ordered Amount',
-                              style: TextStyle(color: Colors.white, fontSize: 17),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                             _pesoText(
                               brand.amount,
                               amountStyle: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 17,
+                                fontSize: 15,
                                 fontFamily: 'Poppins',
                               ),
                               symbolStyle: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 17,
+                                fontSize: 15,
                               ),
                             ),
                           ],
@@ -523,14 +521,14 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             const Text(
                               'Product Count',
-                              style: TextStyle(color: Colors.white, fontSize: 17),
+                              style: TextStyle(color: Colors.white, fontSize: 15),
                             ),
                             Text(
                               brand.count,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
+                                fontSize: 15,
                               ),
                             ),
                           ],

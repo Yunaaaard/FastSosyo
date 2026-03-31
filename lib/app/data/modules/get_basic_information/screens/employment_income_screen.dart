@@ -1,3 +1,4 @@
+import 'package:fast_sosyo/app/data/modules/get_basic_information/screens/verification_process_screen.dart';
 import 'package:flutter/material.dart';
 
 class EmploymentIncomePage extends StatefulWidget {
@@ -114,9 +115,13 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                         ),
                       ),
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Submit logic here
-                        }
+                        // if (_formKey.currentState!.validate()) {
+                          Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const VerifyPerson(),
+                              ),
+                            );
+                        // }
                       },
                       child: const Text(
                         'Done',
