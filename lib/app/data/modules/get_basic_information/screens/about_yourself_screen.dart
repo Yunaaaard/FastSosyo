@@ -1,4 +1,3 @@
-import 'package:fast_sosyo/app/data/modules/check_eligibility/check_eligibility_screen.dart';
 import 'package:fast_sosyo/app/data/modules/get_basic_information/screens/employment_income_screen.dart';
 import 'package:flutter/material.dart';
 

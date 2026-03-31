@@ -1,5 +1,4 @@
 import 'package:fast_sosyo/app/data/modules/get_basic_information/screens/about_yourself_screen.dart';
-import 'package:fast_sosyo/app/data/modules/get_basic_information/screens/upload_id_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 
