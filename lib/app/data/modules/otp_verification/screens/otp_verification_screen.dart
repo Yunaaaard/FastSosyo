@@ -1,5 +1,5 @@
 
-import 'package:fast_sosyo/views/DashboardScreen.dart';
+import 'package:fast_sosyo/app/data/modules/dashboard_page/screen/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

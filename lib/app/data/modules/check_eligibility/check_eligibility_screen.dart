@@ -1,7 +1,7 @@
 
 
 import 'package:flutter/material.dart';
-import 'UploadIDScreen.dart';
+import '../get_basic_information/screens/upload_id_screen.dart';
 
 class CheckEligibilityPage extends StatelessWidget {
 	const CheckEligibilityPage({Key? key}) : super(key: key);

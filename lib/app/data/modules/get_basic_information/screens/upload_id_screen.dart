@@ -1,4 +1,4 @@
-import 'package:fast_sosyo/views/SelfieVerificationScreen.dart';
+import 'package:fast_sosyo/app/data/modules/get_basic_information/screens/selfie_verification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 
