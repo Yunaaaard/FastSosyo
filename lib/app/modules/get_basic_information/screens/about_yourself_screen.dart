@@ -1,32 +1,35 @@
-import 'package:fast_sosyo/app/data/modules/get_basic_information/screens/employment_income_screen.dart';
+import 'package:fast_sosyo/app/modules/get_basic_information/controller/about_yourself_controller.dart';
+import 'package:fast_sosyo/app/modules/get_basic_information/controller/basic_information_flow_controller.dart';
+import 'package:fast_sosyo/app/modules/get_basic_information/screens/employment_income_screen.dart';
 import 'package:flutter/material.dart';
 
 class AboutYourselfPage extends StatefulWidget {
-  const AboutYourselfPage({Key? key}) : super(key: key);
+  const AboutYourselfPage({Key? key, this.flowController}) : super(key: key);
+
+  final BasicInformationFlowController? flowController;
 
   @override
   State<AboutYourselfPage> createState() => _AboutYourselfPageState();
 }
 
 class _AboutYourselfPageState extends State<AboutYourselfPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _partnerController = TextEditingController();
+  late final BasicInformationFlowController _flowController;
+  late final AboutYourselfController _controller;
+  late final bool _ownsFlowController;
 
-  String _status = 'Single';
-  String _gender = '';
-  final List<String> _statusOptions = ['Single', 'Married', 'Divorced', 'Widowed'];
+  @override
+  void initState() {
+    super.initState();
+    _ownsFlowController = widget.flowController == null;
+    _flowController = widget.flowController ?? BasicInformationFlowController();
+    _controller = _flowController.aboutYourselfController;
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _dobController.dispose();
-    _addressController.dispose();
-    _partnerController.dispose();
+    if (_ownsFlowController) {
+      _flowController.dispose();
+    }
     super.dispose();
   }
 
@@ -40,7 +43,7 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
-              key: _formKey,
+              key: _controller.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -84,27 +87,34 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                   ),
                   const SizedBox(height: 24),
                   _buildLabel('Full Name', required: true),
-                  _buildTextField(_nameController, ' ', TextInputType.name),
+                  _buildTextField(
+                      _controller.nameController, ' ', TextInputType.name),
                   const SizedBox(height: 18),
                   _buildLabel('Email Address', required: true),
-                  _buildTextField(_emailController, 'example@email.com', TextInputType.emailAddress),
+                  _buildTextField(_controller.emailController,
+                      'example@email.com', TextInputType.emailAddress),
                   const SizedBox(height: 18),
                   _buildLabel('Date of Birth', required: true),
                   _buildDateField(context),
                   const SizedBox(height: 18),
                   _buildLabel('Status', required: true),
                   _buildStatusDropdown(),
-                  if (_status == 'Married') ...[
+                  if (_controller.status == 'Married') ...[
                     const SizedBox(height: 18),
                     _buildLabel('Partner Name', required: true),
-                    _buildTextField(_partnerController, 'Enter partner name', TextInputType.name),
+                    _buildTextField(_controller.partnerController,
+                        'Enter partner name', TextInputType.name),
                   ],
                   const SizedBox(height: 18),
                   _buildLabel('Gender'),
                   _buildGenderSelector(),
                   const SizedBox(height: 18),
                   _buildLabel('Permanent Address', required: true),
-                  _buildTextField(_addressController, 'Enter your full street address, apartment number, city, and state', TextInputType.streetAddress, maxLines: 3),
+                  _buildTextField(
+                      _controller.addressController,
+                      'Enter your full street address, apartment number, city, and state',
+                      TextInputType.streetAddress,
+                      maxLines: 3),
                   const SizedBox(height: 24),
                   const Text(
                     'Your data is encrypted and only used for identity verification purposes.',
@@ -127,13 +137,14 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                         ),
                       ),
                       onPressed: () {
-                        // if (_formKey.currentState!.validate()) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const EmploymentIncomePage(),
-                              ),
-                            );
-                        // }
+                        _controller.syncModelFromInputs();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => EmploymentIncomePage(
+                              flowController: _flowController,
+                            ),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Done',
@@ -194,24 +205,34 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, TextInputType type, {int maxLines = 1}) {
+  Widget _buildTextField(
+      TextEditingController controller, String hint, TextInputType type,
+      {int maxLines = 1}) {
     return TextFormField(
       controller: controller,
       keyboardType: type,
       maxLines: maxLines,
       validator: (value) {
-        if (hint == 'John Doe' && (value == null || value.isEmpty)) return 'Full Name is required';
-        if (hint == 'johndoe@gmail.com' && (value == null || value.isEmpty)) return 'Email is required';
-        if (hint == 'Enter your full street address, apartment number, city, and state' && (value == null || value.isEmpty)) return 'Address is required';
-        if (hint == 'Enter partner name' && _status == 'Married' && (value == null || value.isEmpty)) return 'Partner Name is required';
+        if (hint == 'John Doe' && (value == null || value.isEmpty))
+          return 'Full Name is required';
+        if (hint == 'johndoe@gmail.com' && (value == null || value.isEmpty))
+          return 'Email is required';
+        if (hint ==
+                'Enter your full street address, apartment number, city, and state' &&
+            (value == null || value.isEmpty)) return 'Address is required';
+        if (hint == 'Enter partner name' &&
+            _controller.status == 'Married' &&
+            (value == null || value.isEmpty)) return 'Partner Name is required';
         return null;
       },
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Poppins'),
+        hintStyle:
+            const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Poppins'),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFBDBDBD)),
@@ -230,7 +251,7 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
 
   Widget _buildDateField(BuildContext context) {
     return TextFormField(
-      controller: _dobController,
+      controller: _controller.dobController,
       readOnly: true,
       validator: (value) {
         if (value == null || value.isEmpty) return 'Date of Birth is required';
@@ -244,15 +265,19 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
           lastDate: DateTime.now(),
         );
         if (picked != null) {
-          _dobController.text = "${picked.month.toString().padLeft(2, '0')} / ${picked.day.toString().padLeft(2, '0')} / ${picked.year}";
+          setState(() {
+            _controller.setDateOfBirth(picked);
+          });
         }
       },
       decoration: InputDecoration(
         hintText: 'mm  / dd  / yyyy',
-        hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Poppins'),
+        hintStyle:
+            const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Poppins'),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFBDBDBD)),
@@ -272,8 +297,8 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
 
   Widget _buildStatusDropdown() {
     return DropdownButtonFormField<String>(
-      value: _status,
-      items: _statusOptions.map((status) {
+      value: _controller.status,
+      items: _controller.statusOptions.map((status) {
         return DropdownMenuItem<String>(
           value: status,
           child: Text(status, style: const TextStyle(fontFamily: 'Poppins')),
@@ -281,13 +306,14 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
       }).toList(),
       onChanged: (value) {
         setState(() {
-          _status = value!;
+          _controller.setStatus(value!);
         });
       },
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFBDBDBD)),
@@ -317,12 +343,12 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
   }
 
   Widget _buildGenderButton(String gender) {
-    final bool selected = _gender == gender;
+    final bool selected = _controller.gender == gender;
     return Expanded(
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _gender = gender;
+            _controller.setGender(gender);
           });
         },
         child: Container(
@@ -331,7 +357,8 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? const Color(0xFF2563EB) : const Color(0xFFBDBDBD),
+              color:
+                  selected ? const Color(0xFF2563EB) : const Color(0xFFBDBDBD),
               width: selected ? 2 : 1.5,
             ),
           ),
@@ -342,7 +369,8 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w500,
               fontSize: 16,
-              color: selected ? const Color(0xFF2563EB) : const Color(0xFF222222),
+              color:
+                  selected ? const Color(0xFF2563EB) : const Color(0xFF222222),
             ),
           ),
         ),

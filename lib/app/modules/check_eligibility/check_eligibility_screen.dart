@@ -1,6 +1,5 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import '../get_basic_information/screens/upload_id_screen.dart';
 
 class CheckEligibilityPage extends StatelessWidget {
@@ -175,7 +174,7 @@ class CheckEligibilityPage extends StatelessWidget {
 					),
 				),
 			),
-			bottomNavigationBar: _BottomNavBar(selectedIndex: 0),
+			bottomNavigationBar: navigationBar(),
 		);
 	}
 
@@ -312,36 +311,65 @@ class _ReasonCard extends StatelessWidget {
 	}
 }
 
-class _BottomNavBar extends StatelessWidget {
-	final int selectedIndex;
-	const _BottomNavBar({required this.selectedIndex});
-
-	@override
-	Widget build(BuildContext context) {
-		return BottomNavigationBar(
-			currentIndex: selectedIndex,
-			type: BottomNavigationBarType.fixed,
-			selectedItemColor: const Color(0xFF275DCE),
-			unselectedItemColor: Colors.black38,
-			showUnselectedLabels: true,
-			items: const [
-				BottomNavigationBarItem(
-					icon: Icon(Icons.home_rounded),
-					label: 'Home',
-				),
-				BottomNavigationBarItem(
-					icon: Icon(Icons.article_outlined),
-					label: 'Loans',
-				),
-				BottomNavigationBarItem(
-					icon: Icon(Icons.history),
-					label: 'History',
-				),
-				BottomNavigationBarItem(
-					icon: Icon(Icons.person_outline),
-					label: 'Profile',
-				),
-			],
-		);
-	}
-}
+BottomNavigationBar navigationBar() {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: const Color(0xFF275DCE),
+      unselectedItemColor: Colors.black38,
+      showUnselectedLabels: true,
+      items: [
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/HomeIcon.svg',
+            height: 20,
+            color: Colors.black38,
+          ),
+          activeIcon: SvgPicture.asset(
+            'assets/icons/HomeIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
+          ),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/LoanIcon.svg',
+            height: 20,
+            color: Colors.black38,
+          ),
+          activeIcon: SvgPicture.asset(
+            'assets/icons/LoanIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
+          ),
+          label: 'Loans',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/HistoryIcon.svg',
+            height: 20,
+            color: Colors.black38,
+          ),
+          activeIcon: SvgPicture.asset(
+            'assets/icons/HistoryIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
+          ),
+          label: 'History',
+        ),
+        BottomNavigationBarItem(
+          icon: SvgPicture.asset(
+            'assets/icons/ProfileIcon.svg',
+            height: 20,
+            color: Colors.black38,
+          ),
+          activeIcon: SvgPicture.asset(
+            'assets/icons/ProfileIcon.svg',
+            height: 23,
+            color: const Color(0xFF275DCE),
+          ),
+          label: 'Profile',
+        ),
+      ],
+    );
+  }

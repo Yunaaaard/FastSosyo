@@ -1,5 +1,5 @@
 
-import 'package:fast_sosyo/app/data/modules/otp_verification/screens/otp_verification_screen.dart';
+import 'package:fast_sosyo/app/modules/otp_verification/screens/otp_verification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 

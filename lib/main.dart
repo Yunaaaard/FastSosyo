@@ -1,6 +1,6 @@
-import 'package:fast_sosyo/app/data/modules/dashboard_page/screen/dashboard_screen.dart';
-import 'package:fast_sosyo/app/data/modules/landing_page/landing_screen.dart';
-import 'package:fast_sosyo/app/data/modules/register_number_page/register_number_screen.dart';
+import 'package:fast_sosyo/app/modules/dashboard_page/screen/dashboard_screen.dart';
+import 'package:fast_sosyo/app/modules/landing_page/landing_screen.dart';
+import 'package:fast_sosyo/app/modules/register_number_page/register_number_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

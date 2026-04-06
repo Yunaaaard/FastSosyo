@@ -1,28 +1,35 @@
-import 'package:fast_sosyo/app/data/modules/get_basic_information/screens/verification_process_screen.dart';
+import 'package:fast_sosyo/app/modules/get_basic_information/controller/employment_income_controller.dart';
+import 'package:fast_sosyo/app/modules/get_basic_information/controller/basic_information_flow_controller.dart';
+import 'package:fast_sosyo/app/modules/get_basic_information/screens/verification_process_screen.dart';
 import 'package:flutter/material.dart';
 
 class EmploymentIncomePage extends StatefulWidget {
-  const EmploymentIncomePage({Key? key}) : super(key: key);
+  const EmploymentIncomePage({Key? key, this.flowController}) : super(key: key);
+
+  final BasicInformationFlowController? flowController;
 
   @override
   State<EmploymentIncomePage> createState() => _EmploymentIncomePageState();
 }
 
 class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _sourceController = TextEditingController();
-  final TextEditingController _incomeController = TextEditingController();
-  final TextEditingController _taxController = TextEditingController();
-  final TextEditingController _employerController = TextEditingController();
-  final TextEditingController _yearsController = TextEditingController();
+  late final BasicInformationFlowController _flowController;
+  late final EmploymentIncomeController _controller;
+  late final bool _ownsFlowController;
+
+  @override
+  void initState() {
+    super.initState();
+    _ownsFlowController = widget.flowController == null;
+    _flowController = widget.flowController ?? BasicInformationFlowController();
+    _controller = _flowController.employmentIncomeController;
+  }
 
   @override
   void dispose() {
-    _sourceController.dispose();
-    _incomeController.dispose();
-    _taxController.dispose();
-    _employerController.dispose();
-    _yearsController.dispose();
+    if (_ownsFlowController) {
+      _flowController.dispose();
+    }
     super.dispose();
   }
 
@@ -36,7 +43,7 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
-              key: _formKey,
+              key: _controller.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -80,19 +87,26 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                   ),
                   const SizedBox(height: 24),
                   _buildLabel('Source of Income', required: true),
-                  _buildTextField(_sourceController, 'Your business', TextInputType.text, required: true),
+                  _buildTextField(_controller.sourceController, 'Your business',
+                      TextInputType.text,
+                      required: true),
                   const SizedBox(height: 18),
                   _buildLabel('Monthly Income', required: true),
-                  _buildTextField(_incomeController, ' ', TextInputType.number, required: true),
+                  _buildTextField(
+                      _controller.incomeController, ' ', TextInputType.number,
+                      required: true),
                   const SizedBox(height: 18),
                   _buildLabel('Income Tax'),
-                  _buildTextField(_taxController, ' ', TextInputType.text),
+                  _buildTextField(
+                      _controller.taxController, ' ', TextInputType.text),
                   const SizedBox(height: 18),
                   _buildLabel('Employer Name'),
-                  _buildTextField(_employerController, 'Enter name', TextInputType.text),
+                  _buildTextField(_controller.employerController, 'Enter name',
+                      TextInputType.text),
                   const SizedBox(height: 18),
                   _buildLabel('Years of Employment'),
-                  _buildTextField(_yearsController, ' ', TextInputType.number),
+                  _buildTextField(
+                      _controller.yearsController, ' ', TextInputType.number),
                   const SizedBox(height: 24),
                   const Text(
                     'Your data is encrypted and only used for identity verification purposes.',
@@ -115,13 +129,13 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                         ),
                       ),
                       onPressed: () {
-                        // if (_formKey.currentState!.validate()) {
-                          Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const VerifyPerson(),
-                              ),
-                            );
-                        // }
+                        _controller.syncModelFromInputs();
+                        _flowController.buildFlowModel();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const VerifyPerson(),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Done',
@@ -182,21 +196,26 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, TextInputType type, {bool required = false, int maxLines = 1}) {
+  Widget _buildTextField(
+      TextEditingController controller, String hint, TextInputType type,
+      {bool required = false, int maxLines = 1}) {
     return TextFormField(
       controller: controller,
       keyboardType: type,
       maxLines: maxLines,
       validator: (value) {
-        if (required && (value == null || value.isEmpty)) return 'This field is required';
+        if (required && (value == null || value.isEmpty))
+          return 'This field is required';
         return null;
       },
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Poppins'),
+        hintStyle:
+            const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Poppins'),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFBDBDBD)),
