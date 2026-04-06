@@ -32,6 +32,13 @@ class EmploymentIncomeController {
   TextEditingController get employerController => _employerController;
   TextEditingController get yearsController => _yearsController;
   EmploymentIncomeModel get model => _model;
+  bool get canSubmit {
+    final bool hasSourceOfIncome = _sourceController.text.trim().isNotEmpty;
+    final double? monthlyIncome =
+        double.tryParse(_incomeController.text.replaceAll(',', '').trim());
+
+    return hasSourceOfIncome && monthlyIncome != null && monthlyIncome > 0;
+  }
 
   void syncModelFromInputs() {
     final String incomeText = _incomeController.text.replaceAll(',', '').trim();

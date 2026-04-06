@@ -22,7 +22,9 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
   final List<String> _idTypes = const [
     'National ID',
     'Passport',
-    'Driver License'
+    'Driver License',
+    'TIN ID',
+    'SSS ID',
   ];
 
   @override

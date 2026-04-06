@@ -17,16 +17,28 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
   late final EmploymentIncomeController _controller;
   late final bool _ownsFlowController;
 
+  void _onFormChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _ownsFlowController = widget.flowController == null;
     _flowController = widget.flowController ?? BasicInformationFlowController();
     _controller = _flowController.employmentIncomeController;
+
+    _controller.sourceController.addListener(_onFormChanged);
+    _controller.incomeController.addListener(_onFormChanged);
   }
 
   @override
   void dispose() {
+    _controller.sourceController.removeListener(_onFormChanged);
+    _controller.incomeController.removeListener(_onFormChanged);
+
     if (_ownsFlowController) {
       _flowController.dispose();
     }
@@ -128,15 +140,23 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      onPressed: () {
-                        _controller.syncModelFromInputs();
-                        _flowController.buildFlowModel();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const VerifyPerson(),
-                          ),
-                        );
-                      },
+                      onPressed: !_controller.canSubmit
+                          ? null
+                          : () {
+                              if (!(_controller.formKey.currentState
+                                      ?.validate() ??
+                                  false)) {
+                                return;
+                              }
+
+                              _controller.syncModelFromInputs();
+                              _flowController.buildFlowModel();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const VerifyPerson(),
+                                ),
+                              );
+                            },
                       child: const Text(
                         'Done',
                         style: TextStyle(

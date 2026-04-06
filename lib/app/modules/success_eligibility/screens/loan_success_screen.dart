@@ -1,3 +1,4 @@
+import 'package:fast_sosyo/app/modules/success_eligibility/screens/loan_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:confetti/confetti.dart';
@@ -216,8 +217,12 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                         padding: const EdgeInsets.symmetric(vertical: 18),
                       ),
                       onPressed: () {
-                        Navigator.of(context).pop();
-                      },
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => LoanDetailsScreen(),
+                                  ),
+                                );
+                              },
                       child: const Text(
                         'OKIEEEE',
                         style: TextStyle(

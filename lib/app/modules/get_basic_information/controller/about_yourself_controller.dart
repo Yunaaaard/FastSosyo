@@ -44,6 +44,16 @@ class AboutYourselfController {
   AboutYourselfModel get model => _model;
   String get status => _model.status;
   String get gender => _model.gender;
+  bool get canSubmit {
+    final bool hasFullName = _nameController.text.trim().isNotEmpty;
+    final bool hasEmail = _emailController.text.trim().isNotEmpty;
+    final bool hasDob = _dobController.text.trim().isNotEmpty;
+    final bool hasAddress = _addressController.text.trim().isNotEmpty;
+    final bool hasPartnerName =
+        _model.status != 'Married' || _partnerController.text.trim().isNotEmpty;
+
+    return hasFullName && hasEmail && hasDob && hasAddress && hasPartnerName;
+  }
 
   void setStatus(String status) {
     _model = _model.copyWith(

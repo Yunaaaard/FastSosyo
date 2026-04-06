@@ -17,16 +17,34 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
   late final AboutYourselfController _controller;
   late final bool _ownsFlowController;
 
+  void _onFormChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _ownsFlowController = widget.flowController == null;
     _flowController = widget.flowController ?? BasicInformationFlowController();
     _controller = _flowController.aboutYourselfController;
+
+    _controller.nameController.addListener(_onFormChanged);
+    _controller.emailController.addListener(_onFormChanged);
+    _controller.dobController.addListener(_onFormChanged);
+    _controller.addressController.addListener(_onFormChanged);
+    _controller.partnerController.addListener(_onFormChanged);
   }
 
   @override
   void dispose() {
+    _controller.nameController.removeListener(_onFormChanged);
+    _controller.emailController.removeListener(_onFormChanged);
+    _controller.dobController.removeListener(_onFormChanged);
+    _controller.addressController.removeListener(_onFormChanged);
+    _controller.partnerController.removeListener(_onFormChanged);
+
     if (_ownsFlowController) {
       _flowController.dispose();
     }
@@ -136,16 +154,24 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      onPressed: () {
-                        _controller.syncModelFromInputs();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => EmploymentIncomePage(
-                              flowController: _flowController,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: !_controller.canSubmit
+                          ? null
+                          : () {
+                              if (!(_controller.formKey.currentState
+                                      ?.validate() ??
+                                  false)) {
+                                return;
+                              }
+
+                              _controller.syncModelFromInputs();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => EmploymentIncomePage(
+                                    flowController: _flowController,
+                                  ),
+                                ),
+                              );
+                            },
                       child: const Text(
                         'Done',
                         style: TextStyle(
