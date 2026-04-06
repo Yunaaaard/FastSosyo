@@ -14,6 +14,7 @@ class EmploymentIncomeController {
     _taxController.text = _model.incomeTax ?? '';
     _employerController.text = _model.employerName ?? '';
     _yearsController.text = _model.yearsOfEmployment?.toString() ?? '';
+    _personalDataConsentAccepted = _model.personalDataConsentAccepted;
   }
 
   final formKey = GlobalKey<FormState>();
@@ -25,6 +26,7 @@ class EmploymentIncomeController {
   final TextEditingController _yearsController = TextEditingController();
 
   EmploymentIncomeModel _model;
+  bool _personalDataConsentAccepted = false;
 
   TextEditingController get sourceController => _sourceController;
   TextEditingController get incomeController => _incomeController;
@@ -32,12 +34,20 @@ class EmploymentIncomeController {
   TextEditingController get employerController => _employerController;
   TextEditingController get yearsController => _yearsController;
   EmploymentIncomeModel get model => _model;
+  bool get personalDataConsentAccepted => _personalDataConsentAccepted;
   bool get canSubmit {
     final bool hasSourceOfIncome = _sourceController.text.trim().isNotEmpty;
     final double? monthlyIncome =
         double.tryParse(_incomeController.text.replaceAll(',', '').trim());
 
-    return hasSourceOfIncome && monthlyIncome != null && monthlyIncome > 0;
+    return hasSourceOfIncome &&
+        monthlyIncome != null &&
+        monthlyIncome > 0 &&
+        _personalDataConsentAccepted;
+  }
+
+  void setPersonalDataConsentAccepted(bool value) {
+    _personalDataConsentAccepted = value;
   }
 
   void syncModelFromInputs() {
@@ -47,6 +57,7 @@ class EmploymentIncomeController {
     _model = _model.copyWith(
       sourceOfIncome: _sourceController.text.trim(),
       monthlyIncome: double.tryParse(incomeText) ?? 0,
+      personalDataConsentAccepted: _personalDataConsentAccepted,
       incomeTax: _taxController.text.trim().isEmpty
           ? null
           : _taxController.text.trim(),

@@ -55,8 +55,9 @@ class BasicInformationFlowController {
         about.dateOfBirth.isNotEmpty &&
         about.permanentAddress.isNotEmpty;
 
-    final bool isEmploymentComplete =
-        employment.sourceOfIncome.isNotEmpty && employment.monthlyIncome > 0;
+    final bool isEmploymentComplete = employment.sourceOfIncome.isNotEmpty &&
+        employment.monthlyIncome > 0 &&
+        employment.personalDataConsentAccepted;
 
     return uploadId.isComplete &&
         selfie.isVerified &&

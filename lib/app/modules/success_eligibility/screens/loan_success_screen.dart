@@ -95,9 +95,9 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: '\u20B1', // Unicode for Peso sign
+                                text: '\u20B1',
                                 style: const TextStyle(
-                                  fontFamily: 'Arial', // fallback font for peso
+                                  fontFamily: 'Arial',
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 32,
@@ -224,7 +224,7 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                                 );
                               },
                       child: const Text(
-                        'OKIEEEE',
+                        'PROCEED',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

@@ -4,6 +4,7 @@ class EmploymentIncomeModel {
   const EmploymentIncomeModel({
     required this.sourceOfIncome,
     required this.monthlyIncome,
+    this.personalDataConsentAccepted = false,
     this.incomeTax,
     this.employerName,
     this.yearsOfEmployment,
@@ -11,6 +12,7 @@ class EmploymentIncomeModel {
 
   final String sourceOfIncome;
   final double monthlyIncome;
+  final bool personalDataConsentAccepted;
   final String? incomeTax;
   final String? employerName;
   final int? yearsOfEmployment;
@@ -18,6 +20,7 @@ class EmploymentIncomeModel {
   EmploymentIncomeModel copyWith({
     String? sourceOfIncome,
     double? monthlyIncome,
+    bool? personalDataConsentAccepted,
     String? incomeTax,
     String? employerName,
     int? yearsOfEmployment,
@@ -25,6 +28,8 @@ class EmploymentIncomeModel {
     return EmploymentIncomeModel(
       sourceOfIncome: sourceOfIncome ?? this.sourceOfIncome,
       monthlyIncome: monthlyIncome ?? this.monthlyIncome,
+      personalDataConsentAccepted:
+          personalDataConsentAccepted ?? this.personalDataConsentAccepted,
       incomeTax: incomeTax ?? this.incomeTax,
       employerName: employerName ?? this.employerName,
       yearsOfEmployment: yearsOfEmployment ?? this.yearsOfEmployment,
@@ -35,6 +40,7 @@ class EmploymentIncomeModel {
     return <String, dynamic>{
       'sourceOfIncome': sourceOfIncome,
       'monthlyIncome': monthlyIncome,
+      'personalDataConsentAccepted': personalDataConsentAccepted,
       'incomeTax': incomeTax,
       'employerName': employerName,
       'yearsOfEmployment': yearsOfEmployment,
@@ -47,6 +53,8 @@ class EmploymentIncomeModel {
       sourceOfIncome: map['sourceOfIncome'] as String? ?? '',
       monthlyIncome:
           monthlyIncomeValue is num ? monthlyIncomeValue.toDouble() : 0,
+      personalDataConsentAccepted:
+          map['personalDataConsentAccepted'] as bool? ?? false,
       incomeTax: map['incomeTax'] as String?,
       employerName: map['employerName'] as String?,
       yearsOfEmployment: map['yearsOfEmployment'] as int?,

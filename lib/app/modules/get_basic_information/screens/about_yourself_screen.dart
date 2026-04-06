@@ -2,6 +2,7 @@ import 'package:fast_sosyo/app/modules/get_basic_information/controller/about_yo
 import 'package:fast_sosyo/app/modules/get_basic_information/controller/basic_information_flow_controller.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/screens/employment_income_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AboutYourselfPage extends StatefulWidget {
   const AboutYourselfPage({Key? key, this.flowController}) : super(key: key);
@@ -106,7 +107,13 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                   const SizedBox(height: 24),
                   _buildLabel('Full Name', required: true),
                   _buildTextField(
-                      _controller.nameController, ' ', TextInputType.name),
+                    _controller.nameController,
+                    ' ',
+                    TextInputType.name,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                    ],
+                  ),
                   const SizedBox(height: 18),
                   _buildLabel('Email Address', required: true),
                   _buildTextField(_controller.emailController,
@@ -121,7 +128,12 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                     const SizedBox(height: 18),
                     _buildLabel('Partner Name', required: true),
                     _buildTextField(_controller.partnerController,
-                        'Enter partner name', TextInputType.name),
+                      'Enter partner name',
+                      TextInputType.name,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                      ],
+                    ),
                   ],
                   const SizedBox(height: 18),
                   _buildLabel('Gender'),
@@ -233,11 +245,12 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
 
   Widget _buildTextField(
       TextEditingController controller, String hint, TextInputType type,
-      {int maxLines = 1}) {
+      {int maxLines = 1, List<TextInputFormatter>? inputFormatters}) {
     return TextFormField(
       controller: controller,
       keyboardType: type,
       maxLines: maxLines,
+      inputFormatters: inputFormatters,
       validator: (value) {
         if (hint == 'John Doe' && (value == null || value.isEmpty))
           return 'Full Name is required';

@@ -2,6 +2,7 @@ import 'package:fast_sosyo/app/modules/get_basic_information/controller/employme
 import 'package:fast_sosyo/app/modules/get_basic_information/controller/basic_information_flow_controller.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/screens/verification_process_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class EmploymentIncomePage extends StatefulWidget {
   const EmploymentIncomePage({Key? key, this.flowController}) : super(key: key);
@@ -99,29 +100,90 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                   ),
                   const SizedBox(height: 24),
                   _buildLabel('Source of Income', required: true),
-                  _buildTextField(_controller.sourceController, 'Your business',
-                      TextInputType.text,
-                      required: true),
-                  const SizedBox(height: 18),
-                  _buildLabel('Monthly Income', required: true),
                   _buildTextField(
-                      _controller.incomeController, ' ', TextInputType.number,
-                      required: true),
+                    _controller.sourceController,
+                    'Your business',
+                    TextInputType.text,
+                    required: true,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: const [
+                      Text(
+                        'Monthly Income (',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Color(0xFF222222),
+                        ),
+                      ),
+                      Text(
+                        '\u20B1',
+                        style: TextStyle(
+                          fontFamily: 'Arial',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Color(0xFF222222),
+                        ),
+                      ),
+                      Text(
+                        ')',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Color(0xFF222222),
+                        ),
+                      ),
+                      Text(
+                        ' *',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  _buildTextField(
+                    _controller.incomeController,
+                    ' ',
+                    TextInputType.number,
+                    required: true,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
                   const SizedBox(height: 18),
                   _buildLabel('Income Tax'),
                   _buildTextField(
-                      _controller.taxController, ' ', TextInputType.text),
+                    _controller.taxController,
+                    ' ',
+                    TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
                   const SizedBox(height: 18),
                   _buildLabel('Employer Name'),
-                  _buildTextField(_controller.employerController, 'Enter name',
-                      TextInputType.text),
+                  _buildTextField(
+                    _controller.employerController,
+                    'Enter name',
+                    TextInputType.text,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                    ],
+                  ),
                   const SizedBox(height: 18),
                   _buildLabel('Years of Employment'),
                   _buildTextField(
-                      _controller.yearsController, ' ', TextInputType.number),
+                    _controller.yearsController,
+                    ' ',
+                    TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildConsentCheckbox(),
                   const SizedBox(height: 24),
                   const Text(
                     'Your data is encrypted and only used for identity verification purposes.',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w400,
@@ -218,11 +280,16 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
 
   Widget _buildTextField(
       TextEditingController controller, String hint, TextInputType type,
-      {bool required = false, int maxLines = 1}) {
+      {bool required = false,
+      int maxLines = 1,
+      List<TextInputFormatter>? inputFormatters,
+      String? suffixText,
+      Widget? suffixWidget}) {
     return TextFormField(
       controller: controller,
       keyboardType: type,
       maxLines: maxLines,
+      inputFormatters: inputFormatters,
       validator: (value) {
         if (required && (value == null || value.isEmpty))
           return 'This field is required';
@@ -236,6 +303,9 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
         fillColor: Colors.white,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        suffixText: suffixText,
+        suffixIcon: suffixWidget,
+        suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFBDBDBD)),
@@ -249,6 +319,61 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
           borderSide: const BorderSide(color: Color(0xFF2563EB)),
         ),
       ),
+    );
+  }
+
+  Widget _buildConsentCheckbox() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: _controller.personalDataConsentAccepted,
+            onChanged: (value) {
+              setState(() {
+                _controller.setPersonalDataConsentAccepted(value ?? false);
+              });
+            },
+            side: const BorderSide(
+              color: Color(0xFFDDDDDD),
+              width: 2,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _controller.setPersonalDataConsentAccepted(
+                  !_controller.personalDataConsentAccepted,
+                );
+              });
+            },
+            child: const Text.rich(
+              TextSpan(
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  color: Color(0xFF5A5A5A),
+                ),
+                children: [
+                  TextSpan(
+                    text:
+                        'I agree to the collection and use of my personal data for identity verification in accordance with the terms and conditions.',
+                    style: TextStyle(fontWeight: FontWeight.w400),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
