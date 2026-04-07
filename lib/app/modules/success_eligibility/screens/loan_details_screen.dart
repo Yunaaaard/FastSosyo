@@ -337,131 +337,6 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: () async {
-                                        await _agreementService
-                                            .openGeneratedAgreementFile(
-                                          controller.generatedAgreementPath!,
-                                        );
-                                      },
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(
-                                            color: Color(0xFF86EFAC)),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      icon: const Icon(
-                                        Icons.open_in_new,
-                                        size: 16,
-                                        color: Color(0xFF166534),
-                                      ),
-                                      label: const Text(
-                                        'Open PDF',
-                                        style: TextStyle(
-                                          color: Color(0xFF166534),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: () async {
-                                        await Clipboard.setData(
-                                          ClipboardData(
-                                            text: controller
-                                                .generatedAgreementPath!,
-                                          ),
-                                        );
-                                        if (!mounted) return;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content:
-                                                Text('Agreement path copied'),
-                                          ),
-                                        );
-                                      },
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(
-                                            color: Color(0xFF86EFAC)),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      icon: const Icon(
-                                        Icons.copy,
-                                        size: 16,
-                                        color: Color(0xFF166534),
-                                      ),
-                                      label: const Text(
-                                        'Copy Path',
-                                        style: TextStyle(
-                                          color: Color(0xFF166534),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (Theme.of(context).platform ==
-                                  TargetPlatform.android) ...[
-                                const SizedBox(height: 8),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () async {
-                                      final String? savedTo =
-                                          await _agreementService
-                                              .saveAgreementToAndroidDownloads(
-                                        controller.generatedAgreementPath!,
-                                      );
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            savedTo == null
-                                                ? 'Could not save to Downloads. Use Open PDF or Copy Path.'
-                                                : 'Saved to Downloads: $savedTo',
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                          color: Color(0xFF86EFAC)),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    icon: const Icon(
-                                      Icons.download,
-                                      size: 16,
-                                      color: Color(0xFF166534),
-                                    ),
-                                    label: const Text(
-                                      'Save to Downloads (Android)',
-                                      style: TextStyle(
-                                        color: Color(0xFF166534),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ),
@@ -855,67 +730,77 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 52,
-                              child: ElevatedButton(
-                                onPressed: agreed &&
-                                        signatureController.isNotEmpty
-                                    ? () async {
-                                        final Uint8List? signatureBytes =
-                                            await signatureController
-                                                .toPngBytes();
-                                        if (signatureBytes == null) return;
+                            ValueListenableBuilder<List<Point>>(
+                              valueListenable: signatureController,
+                              builder: (
+                                BuildContext context,
+                                List<Point> _signaturePoints,
+                                Widget? child,
+                              ) {
+                                final bool canSubmit =
+                                    agreed && signatureController.isNotEmpty;
+                                return SizedBox(
+                                  width: double.infinity,
+                                  height: 52,
+                                  child: ElevatedButton(
+                                    onPressed: canSubmit
+                                        ? () async {
+                                            final Uint8List? signatureBytes =
+                                                await signatureController
+                                                    .toPngBytes();
+                                            if (signatureBytes == null) return;
 
-                                        final String savedPath =
-                                            await _agreementService
-                                                .generateAndSaveAgreementPdf(
-                                          signatureBytes: signatureBytes,
-                                          fullName:
-                                              controller.resolvedUserFullName,
-                                        );
+                                            final String savedPath =
+                                                await _agreementService
+                                                    .generateAndSaveAgreementPdf(
+                                              signatureBytes: signatureBytes,
+                                              fullName: controller
+                                                  .resolvedUserFullName,
+                                            );
 
-                                        String finalPath = savedPath;
-                                        if (!_agreementService
-                                            .isAndroidDownloadsPath(
-                                                savedPath)) {
-                                          final String? downloadedPath =
-                                              await _agreementService
-                                                  .saveAgreementToAndroidDownloads(
-                                                      savedPath);
-                                          if (downloadedPath != null &&
-                                              downloadedPath.isNotEmpty) {
-                                            finalPath = downloadedPath;
+                                            String finalPath = savedPath;
+                                            if (!_agreementService
+                                                .isAndroidDownloadsPath(
+                                                    savedPath)) {
+                                              final String? downloadedPath =
+                                                  await _agreementService
+                                                      .saveAgreementToAndroidDownloads(
+                                                          savedPath);
+                                              if (downloadedPath != null &&
+                                                  downloadedPath.isNotEmpty) {
+                                                finalPath = downloadedPath;
+                                              }
+                                            }
+
+                                            controller.setAgreementGenerated(
+                                                finalPath);
+
+                                            Navigator.of(
+                                              modalContext,
+                                              rootNavigator: true,
+                                            ).pop<String>(finalPath);
                                           }
-                                        }
-
-                                        controller
-                                            .setAgreementGenerated(finalPath);
-
-                                        Navigator.of(
-                                          modalContext,
-                                          rootNavigator: true,
-                                        ).pop<String>(finalPath);
-                                      }
-                                    : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2563EB),
-                                  disabledBackgroundColor:
-                                      const Color(0xFFCBD5E1),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF2563EB),
+                                      disabledBackgroundColor:
+                                          const Color(0xFFCBD5E1),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Sign & Generate PDF',
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                child: const Text(
-                                  'Sign & Generate PDF',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                           ],
                         ),

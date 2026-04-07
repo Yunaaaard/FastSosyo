@@ -118,7 +118,7 @@ class LoanAgreementService {
             ),
             pw.SizedBox(height: 3),
             pw.Padding(
-              padding: const pw.EdgeInsets.only(left: 46),
+              padding: const pw.EdgeInsets.only(left: 43),
               child: pw.Text(
                 'Name',
                 style: pw.TextStyle(
