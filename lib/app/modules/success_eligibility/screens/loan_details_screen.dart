@@ -823,13 +823,13 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                                     children: [
                                       TextSpan(text: 'I agree to the '),
                                       TextSpan(
-                                        text: 'Terms and Conditions',
+                                        text: 'Loan Agreement Terms',
                                         style: TextStyle(
                                           color: Color(0xFF2563EB),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      TextSpan(text: ' and consent tosign this agreement.'),
+                                      TextSpan(text: ' and consent to sign this agreement.'),
                                     ],
                                   ),
                                 ),

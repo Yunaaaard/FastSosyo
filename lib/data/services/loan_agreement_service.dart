@@ -1,11 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
-
 import 'package:fast_sosyo/app/modules/success_eligibility/constants/loan_agreement_content.dart';
 
 class LoanAgreementService {
