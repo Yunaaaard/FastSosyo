@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -7,70 +8,136 @@ import 'package:share_plus/share_plus.dart';
 import 'package:fast_sosyo/app/modules/success_eligibility/constants/loan_agreement_content.dart';
 
 class LoanAgreementService {
+  static pw.Font? _cachedTimesNewRoman;
+  static const List<String> _androidDownloadsDirs = <String>[
+    '/storage/emulated/0/Download',
+    '/sdcard/Download',
+  ];
+
   Future<String> generateAndSaveAgreementPdf({
     required Uint8List signatureBytes,
     required String fullName,
   }) async {
     final pw.Document pdf = pw.Document();
     final pw.MemoryImage signatureImage = pw.MemoryImage(signatureBytes);
+    final pw.Font times = await _getTimesNewRomanFont();
+    final pw.Font timesBold = pw.Font.timesBold();
+    final DateTime now = DateTime.now();
+    final String signedDate = _formatShortDate(now);
     final Directory documentsDirectory = await _getAgreementDirectory();
     final String fileName =
         'loan_agreement_${DateTime.now().millisecondsSinceEpoch}.pdf';
     final String filePath = '${documentsDirectory.path}/$fileName';
 
+    final pw.TextStyle titleStyle = pw.TextStyle(
+      font: timesBold,
+      fontSize: 12,
+      color: PdfColors.black,
+    );
+    final pw.TextStyle subtitleStyle = pw.TextStyle(
+      font: times,
+      fontSize: 9,
+      color: PdfColors.black,
+    );
+    final pw.TextStyle partyLineStyle = pw.TextStyle(
+      font: timesBold,
+      fontSize: 12,
+      color: PdfColors.black,
+      lineSpacing: 6,
+    );
+    final pw.TextStyle bodyStyle = pw.TextStyle(
+      font: times,
+      fontSize: 12,
+      color: PdfColors.black,
+      lineSpacing: 4,
+    );
+
+    final List<pw.Widget> bodyParagraphs = _buildBodyParagraphs(bodyStyle);
+
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.fromLTRB(72, 44, 72, 46),
         build: (pw.Context context) {
-          return pw.Padding(
-            padding: const pw.EdgeInsets.all(32),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  LoanAgreementContent.pdfTitle,
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.SizedBox(height: 16),
-                pw.Text(
-                  'Name: $fullName',
-                  style: const pw.TextStyle(fontSize: 14),
-                ),
-                pw.SizedBox(height: 12),
-                pw.Text(
-                  LoanAgreementContent.bodyText,
-                  style: pw.TextStyle(fontSize: 12, height: 1.5),
-                ),
-                pw.SizedBox(height: 24),
-                pw.Text(
-                  'Signature',
-                  style: pw.TextStyle(
-                    fontSize: 14,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.SizedBox(height: 8),
-                pw.Container(
-                  height: 120,
-                  width: double.infinity,
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border.all(color: PdfColors.grey400),
-                  ),
-                  child: pw.Center(
-                    child: pw.Image(signatureImage, fit: pw.BoxFit.contain),
-                  ),
-                ),
-                pw.SizedBox(height: 24),
-                pw.Text(
-                  LoanAgreementContent.footerNote,
-                  style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
-                ),
-              ],
+          return <pw.Widget>[
+            pw.Center(
+              child: pw.Text(
+                'LOAN AGREEMENT TERMS',
+                style: titleStyle,
+              ),
             ),
-          );
+            pw.SizedBox(height: 2),
+            pw.Center(
+              child: pw.Text(
+                '(Sample Contract)',
+                style: subtitleStyle,
+              ),
+            ),
+            pw.SizedBox(height: 18),
+            pw.Text('Fast Distribution Corporation', style: partyLineStyle),
+            pw.Text('Fast Sosyo', style: partyLineStyle),
+            pw.Text(signedDate, style: partyLineStyle),
+            pw.SizedBox(height: 18),
+            ...bodyParagraphs,
+            pw.SizedBox(height: 10),
+            pw.Container(
+              width: 260,
+              height: 52,
+              child: pw.Stack(
+                children: [
+                  pw.Positioned(
+                    left: 0,
+                    bottom: 0,
+                    child: pw.Container(
+                      width: 250,
+                      child: pw.Text(
+                        fullName,
+                        style: pw.TextStyle(
+                          font: times,
+                          fontSize: 13,
+                          color: PdfColors.black,
+                          decoration: pw.TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                  pw.Positioned(
+                    left: 0,
+                    bottom: 8,
+                    child: pw.Container(
+                      width: 110,
+                      height: 32,
+                      child: pw.Image(
+                        signatureImage,
+                        fit: pw.BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 3),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 46),
+              child: pw.Text(
+                'Name',
+                style: pw.TextStyle(
+                  font: timesBold,
+                  fontSize: 12,
+                  color: PdfColors.black,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Date Signed: $signedDate',
+              style: pw.TextStyle(
+                font: times,
+                fontSize: 12,
+                color: PdfColors.black,
+              ),
+            ),
+          ];
         },
       ),
     );
@@ -126,12 +193,7 @@ class LoanAgreementService {
     }
 
     final String fileName = extractFileName(sourcePath);
-    final List<String> candidateDirs = <String>[
-      '/storage/emulated/0/Download',
-      '/sdcard/Download',
-    ];
-
-    for (final String dirPath in candidateDirs) {
+    for (final String dirPath in _androidDownloadsDirs) {
       try {
         final Directory dir = Directory(dirPath);
         if (!await dir.exists()) {
@@ -155,6 +217,13 @@ class LoanAgreementService {
     }
 
     return null;
+  }
+
+  bool isAndroidDownloadsPath(String filePath) {
+    final String normalizedPath = filePath.replaceAll('\\', '/');
+    return _androidDownloadsDirs.any(
+      (String dir) => normalizedPath.startsWith(dir),
+    );
   }
 
   String extractFileName(String filePath) {
@@ -182,6 +251,15 @@ class LoanAgreementService {
   }
 
   Future<Directory> _getAgreementDirectory() async {
+    if (Platform.isAndroid) {
+      for (final String dirPath in _androidDownloadsDirs) {
+        final Directory downloads = Directory(dirPath);
+        if (await downloads.exists()) {
+          return downloads;
+        }
+      }
+    }
+
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       final String? home =
           Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'];
@@ -196,5 +274,42 @@ class LoanAgreementService {
     }
 
     return getApplicationDocumentsDirectory();
+  }
+
+  String _formatShortDate(DateTime date) {
+    return '${date.month}/${date.day}/${date.year}';
+  }
+
+  List<pw.Widget> _buildBodyParagraphs(pw.TextStyle bodyStyle) {
+    final List<String> paragraphs = LoanAgreementContent.bodyText
+        .split('\n\n')
+        .map((String part) => part.trim())
+        .where((String part) => part.isNotEmpty)
+        .toList();
+
+    return paragraphs
+        .map(
+          (String paragraph) => pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 10),
+            child: pw.Paragraph(
+              text: paragraph,
+              textAlign: pw.TextAlign.justify,
+              style: bodyStyle,
+            ),
+          ),
+        )
+        .toList();
+  }
+
+  Future<pw.Font> _getTimesNewRomanFont() async {
+    if (_cachedTimesNewRoman != null) {
+      return _cachedTimesNewRoman!;
+    }
+
+    final ByteData fontData = await rootBundle.load(
+      'assets/fonts/Times-New-Roman.ttf',
+    );
+    _cachedTimesNewRoman = pw.Font.ttf(fontData);
+    return _cachedTimesNewRoman!;
   }
 }

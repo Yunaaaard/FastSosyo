@@ -48,3 +48,7 @@ flutter:
           weight: 400 
         - asset: assets/fonts/Poppins-SemiBold.ttf
           weight: 600
+    - family: Times New Roman
+      fonts:
+        - asset: assets/fonts/Times-New-Roman.ttf
+          weight: 400
