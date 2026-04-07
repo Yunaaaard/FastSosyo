@@ -1,18 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fast_sosyo/app/modules/success_eligibility/constants/loan_agreement_content.dart';
+import 'package:fast_sosyo/app/modules/success_eligibility/controller/loan_details_controller.dart';
+import 'package:fast_sosyo/data/services/loan_agreement_service.dart';
+import 'package:signature/signature.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
 
 class LoanDetailsScreen extends StatefulWidget {
-  const LoanDetailsScreen({super.key});
+  const LoanDetailsScreen({super.key, required this.userFullName});
+
+  final String userFullName;
 
   @override
   State<LoanDetailsScreen> createState() => _LoanDetailsScreenState();
 }
 
 class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
-  bool _termsAgreed = false;
+  LoanDetailsController? _controller;
+  final LoanAgreementService _agreementService = LoanAgreementService();
+
+  LoanDetailsController get _controllerRef =>
+      _controller ??= LoanDetailsController(userFullName: widget.userFullName);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller ??= LoanDetailsController(userFullName: widget.userFullName);
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final LoanDetailsController controller = _controllerRef;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F9FF),
       appBar: appBar(context),
@@ -52,8 +76,9 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                             fontSize: 32,
                           ),
                         ),
-                        TextSpan(
-                          text: ' 25,000.00',
+                              TextSpan(
+                                text:
+                                    ' ${controller.loanOffer.maximumLoanLimit.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             color: Colors.white,
@@ -69,7 +94,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
+                    children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -80,7 +105,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            '1.59% /mo',
+                              controller.loanOffer.interestRateLabel,
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -99,7 +124,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            '12 Months',
+                              controller.loanOffer.paymentTermLabel,
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -139,30 +164,19 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                         vertical: 16, horizontal: 16),
                     child: Column(
                       children: [
-                        _buildBreakdownRow(
-                          'Annual Interest Rate (APR)',
-                          '11.49%',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildBreakdownRow(
-                          'Processing Fee (2.5%)',
-                          '312.50',
-                          hasPeso: true,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildBreakdownRow(
-                          'Documentation Charges',
-                          '45.00',
-                          hasPeso: true,
-                        ),
-                        const Divider(height: 16, color: Color(0xFFF0F0F0)),
-                        _buildBreakdownRow(
-                          'Total Repayment',
-                          '26,574.08',
-                          isBold: true,
-                          hasPeso: true,
-                          valueColor: const Color(0xFF2563EB),
-                        ),
+                        for (int i = 0; i < controller.breakdownItems.length; i++) ...[
+                          _buildBreakdownRow(
+                            controller.breakdownItems[i].label,
+                            controller.breakdownItems[i].value,
+                            isBold: controller.breakdownItems[i].isBold,
+                            hasPeso: controller.breakdownItems[i].hasPeso,
+                            valueColor: controller.breakdownItems[i].valueColor,
+                          ),
+                          if (i == controller.breakdownItems.length - 2)
+                            const Divider(height: 16, color: Color(0xFFF0F0F0))
+                          else if (i != controller.breakdownItems.length - 1)
+                            const SizedBox(height: 16),
+                        ],
                       ],
                     ),
                   ),
@@ -186,131 +200,250 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 14),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 35,
-                          height: 35,
-                          decoration: const BoxDecoration(
-                            color: Color.fromRGBO(221, 236, 252, 1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: SvgPicture.asset(
-                              'assets/icons/loan_agreement.svg',
-                              height: 20,
-                              width: 20,
-                            ),
-                          ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: _openContractModal,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF2563EB)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Loan_Agreement_v2.pdf',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                  fontSize: 15,
+                      ),
+                      icon: const Icon(
+                        Icons.description_outlined,
+                        color: Color(0xFF2563EB),
+                        size: 18,
+                      ),
+                      label: const Text(
+                        'Review Contract',
+                        style: TextStyle(
+                          color: Color(0xFF2563EB),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (controller.generatedAgreementPath != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFBBF7D0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFDCFCE7),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.check,
+                                  size: 15,
+                                  color: Color(0xFF15803D),
                                 ),
                               ),
-                              SizedBox(height: 4),
-                              Text(
-                                '1.4MB | Tap to preview agreement',
-                                style: TextStyle(
-                                  color: Colors.black45,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Agreement saved',
+                                  style: TextStyle(
+                                    color: Color(0xFF166534),
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDCFCE7),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: const Text(
+                                  'Ready',
+                                  style: TextStyle(
+                                    color: Color(0xFF166534),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            // Terms Agreement Checkbox
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Checkbox(
-                      value: _termsAgreed,
-                      onChanged: (value) {
-                        setState(() {
-                          _termsAgreed = value ?? false;
-                        });
-                      },
-                      side: const BorderSide(
-                        color: Color(0xFFDDDDDD),
-                        width: 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                          fontFamily: 'Poppins',
-                        ),
-                        children: [
-                          const TextSpan(
-                            text: 'I have read and agree to the ',
-                            style: TextStyle(fontWeight: FontWeight.w400),
-                          ),
-                          TextSpan(
-                            text: 'Terms of Service',
-                            style: const TextStyle(
-                              color: Color(0xFF2563EB),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'File',
+                            style: TextStyle(
+                              color: Color(0xFF166534),
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
-                            recognizer:
-                                null, // Can add TapGestureRecognizer for navigation
                           ),
-                          const TextSpan(
-                            text: ' and the ',
-                            style: TextStyle(fontWeight: FontWeight.w400),
-                          ),
-                          TextSpan(
-                            text: 'Privacy Policy',
+                          const SizedBox(height: 2),
+                          Text(
+                            _agreementService
+                              .extractFileName(controller.generatedAgreementPath!),
                             style: const TextStyle(
-                              color: Color(0xFF2563EB),
-                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF14532D),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
                             ),
-                            recognizer:
-                                null, // Can add TapGestureRecognizer for navigation
                           ),
-                          const TextSpan(
-                            text: ' for this digital loan.',
-                            style: TextStyle(fontWeight: FontWeight.w400),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Saved in ${_agreementService.extractDirectoryLabel(controller.generatedAgreementPath!)}',
+                            style: const TextStyle(
+                              color: Color(0xFF166534),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () async {
+                                    await _agreementService.openGeneratedAgreementFile(
+                                      controller.generatedAgreementPath!,
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFF86EFAC)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.open_in_new,
+                                    size: 16,
+                                    color: Color(0xFF166534),
+                                  ),
+                                  label: const Text(
+                                    'Open PDF',
+                                    style: TextStyle(
+                                      color: Color(0xFF166534),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () async {
+                                    await Clipboard.setData(
+                                      ClipboardData(
+                                        text: controller.generatedAgreementPath!,
+                                      ),
+                                    );
+                                    if (!mounted) {
+                                      return;
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Agreement path copied'),
+                                      ),
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFF86EFAC)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.copy,
+                                    size: 16,
+                                    color: Color(0xFF166534),
+                                  ),
+                                  label: const Text(
+                                    'Copy Path',
+                                    style: TextStyle(
+                                      color: Color(0xFF166534),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (Theme.of(context).platform == TargetPlatform.android) ...[
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  final String? savedTo =
+                                      await _agreementService
+                                          .saveAgreementToAndroidDownloads(
+                                    controller.generatedAgreementPath!,
+                                  );
+                                  if (!mounted) {
+                                    return;
+                                  }
+
+                                  if (savedTo == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Could not save to Downloads. Use Share/Save to Files instead.',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Saved to Downloads: $savedTo'),
+                                    ),
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side:
+                                      const BorderSide(color: Color(0xFF86EFAC)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.download,
+                                  size: 16,
+                                  color: Color(0xFF166534),
+                                ),
+                                label: const Text(
+                                  'Save to Downloads (Android)',
+                                  style: TextStyle(
+                                    color: Color(0xFF166534),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -322,7 +455,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _termsAgreed
+                  onPressed: controller.contractSigned
                       ? () {
                           // Handle e-sign via OTP
                         }
@@ -336,7 +469,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                     elevation: 0,
                   ),
                   child: const Text(
-                    'E-Sign Via OTP',
+                    'Proceed & Verify OTP',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -446,4 +579,369 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
       ],
     );
   }
+
+  Future<void> _openContractModal() async {
+    final LoanDetailsController controller = _controllerRef;
+    final SignatureController signatureController = SignatureController(
+      penStrokeWidth: 2.5,
+      penColor: Colors.black,
+      exportBackgroundColor: Colors.white,
+    );
+    bool agreed = false;
+    final BuildContext rootContext = context;
+
+    try {
+      await showModalBottomSheet<void>(
+        context: rootContext,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        builder: (BuildContext modalContext) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.93,
+            minChildSize: 0.72,
+            maxChildSize: 0.98,
+            expand: false,
+            builder: (BuildContext context, ScrollController scrollController) {
+              return StatefulBuilder(
+                builder: (BuildContext context, void Function(void Function()) setSheetState) {
+                  return Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                    ),
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: Container(
+                                width: 54,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE5E7EB),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit_document,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Digital Contract',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Review the agreement, sign below, and save your copy.',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 13,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFF8FAFC), Color(0xFFEFF6FF)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFDCE7F5)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    LoanAgreementContent.previewTitle,
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    LoanAgreementContent.bodyText,
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 13,
+                                      height: 1.5,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    'Name: ${controller.resolvedUserFullName}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Row(
+                              children: [
+                                Icon(Icons.draw_outlined, size: 18, color: Color(0xFF2563EB)),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Sign here with your finger',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Container(
+                              height: 190,
+                              clipBehavior: Clip.antiAlias,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFFCBD5E1)),
+                              ),
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(16),
+                                      ),
+                                      child: Signature(
+                                        controller: signatureController,
+                                        backgroundColor: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.vertical(
+                                        bottom: Radius.circular(16),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Draw your signature above',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 12,
+                                        color: Colors.black45,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  signatureController.clear();
+                                  setSheetState(() {});
+                                },
+                                icon: const Icon(Icons.delete_outline, size: 18),
+                                label: const Text('Clear'),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFFDCE7F5)),
+                              ),
+                              child: CheckboxListTile(
+                                contentPadding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                                activeColor: const Color(0xFF2563EB),
+                                controlAffinity: ListTileControlAffinity.leading,
+                                value: agreed,
+                                onChanged: (bool? value) {
+                                  setSheetState(() {
+                                    agreed = value ?? false;
+                                  });
+                                },
+                                title: const Text.rich(
+                                  TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontFamily: 'Poppins',
+                                      color: Colors.black87,
+                                    ),
+                                    children: [
+                                      TextSpan(text: 'I agree to the '),
+                                      TextSpan(
+                                        text: 'Terms and Conditions',
+                                        style: TextStyle(
+                                          color: Color(0xFF2563EB),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      TextSpan(text: ' and consent tosign this agreement.'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: ElevatedButton(
+                                onPressed: agreed && signatureController.isNotEmpty
+                                    ? () async {
+                                        final Uint8List? signatureBytes =
+                                            await signatureController.toPngBytes();
+                                        if (signatureBytes == null) {
+                                          return;
+                                        }
+
+                                        final String savedPath =
+                                            await _agreementService
+                                                .generateAndSaveAgreementPdf(
+                                          signatureBytes: signatureBytes,
+                                          fullName: controller.resolvedUserFullName,
+                                        );
+
+                                        if (!mounted) {
+                                          return;
+                                        }
+
+                                        controller.setAgreementGenerated(savedPath);
+
+                                        await _agreementService
+                                            .openGeneratedAgreementFile(savedPath);
+                                        await _agreementService
+                                            .shareGeneratedAgreementOnMobile(savedPath);
+
+                                        if (Navigator.of(rootContext).canPop()) {
+                                          Navigator.of(rootContext).pop();
+                                        }
+
+                                        if (!mounted) {
+                                          return;
+                                        }
+
+                                        await showDialog<void>(
+                                          context: rootContext,
+                                          builder: (BuildContext dialogContext) {
+                                            return AlertDialog(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              title: const Text(
+                                                'Agreement saved',
+                                                style: TextStyle(fontFamily: 'Poppins'),
+                                              ),
+                                              content: Text(
+                                                'Your signed PDF is ready:\n$savedPath',
+                                                style: const TextStyle(fontFamily: 'Poppins'),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(dialogContext).pop();
+                                                  },
+                                                  child: const Text('OK'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(rootContext).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Agreement saved to $savedPath'),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2563EB),
+                                  disabledBackgroundColor: const Color(0xFFCBD5E1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Sign & Generate PDF',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      signatureController.dispose();
+    }
+  }
+
 }

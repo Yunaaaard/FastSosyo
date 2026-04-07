@@ -212,10 +212,12 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                               }
 
                               _controller.syncModelFromInputs();
-                              _flowController.buildFlowModel();
+                              final flowModel = _flowController.buildFlowModel();
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const VerifyPerson(),
+                                  builder: (context) => VerifyPerson(
+                                    userFullName: flowModel.aboutYourself.fullName,
+                                  ),
                                 ),
                               );
                             },

@@ -1,16 +1,31 @@
 import 'package:fast_sosyo/app/modules/success_eligibility/screens/loan_details_screen.dart';
+import 'package:fast_sosyo/app/modules/success_eligibility/models/loan_success_content_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:confetti/confetti.dart';
 
 class LoanSuccessfulPage extends StatefulWidget {
-  const LoanSuccessfulPage({super.key});
+  const LoanSuccessfulPage({super.key, required this.userFullName});
+
+  final String userFullName;
 
   @override
   State<LoanSuccessfulPage> createState() => _LoanSuccessfulPageState();
 }
 
 class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
+  static const LoanSuccessContentModel _content = LoanSuccessContentModel(
+    title: "You're Eligible!",
+    subtitle: "We reviewed your account and you're ready to grow",
+    maximumLoanLimit: 25000,
+    interestRateLabel: '1.59% /mo',
+    paymentTermLabel: '12 Months',
+    secureBankingTitle: 'Secure Banking',
+    secureBankingDescription:
+        'Funds are protected by the industry-leading encryption and deposited directly to your digital vault.',
+    proceedButtonLabel: 'PROCEED',
+  );
+
   late ConfettiController _confettiControllerLeft;
   late ConfettiController _confettiControllerRight;
 
@@ -49,8 +64,8 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                     height: 180,
                   ),
                   const SizedBox(height: 32),
-                  const Text(
-                    "You're Eligible!",
+                  Text(
+                    _content.title,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -59,10 +74,10 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 32.0),
                     child: Text(
-                      "We reviewed your account and you're ready to grow",
+                      _content.subtitle,
                       style: TextStyle(
                         fontSize: 17,
                         color: Colors.black45,
@@ -104,7 +119,8 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                                 ),
                               ),
                               TextSpan(
-                                text: ' 25,000.00',
+                                text:
+                                    ' ${_content.maximumLoanLimit.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   color: Colors.white,
@@ -120,7 +136,7 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                         const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
+                          children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -130,7 +146,7 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                                 ),
                                 SizedBox(height: 2),
                                 Text(
-                                  '1.59% /mo',
+                                  _content.interestRateLabel,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -148,7 +164,7 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                                 ),
                                 SizedBox(height: 2),
                                 Text(
-                                  '12 Months',
+                                  _content.paymentTermLabel,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -180,9 +196,9 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
-                                'Secure Banking',
+                                _content.secureBankingTitle,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
@@ -191,7 +207,7 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'Funds are protected by the industry-leading encryption and deposited directly to your digital vault.',
+                                _content.secureBankingDescription,
                                 style: TextStyle(
                                   color: Colors.black38,
                                   fontSize: 13,
@@ -219,12 +235,14 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                       onPressed: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => LoanDetailsScreen(),
+                                    builder: (context) => LoanDetailsScreen(
+                                      userFullName: widget.userFullName,
+                                    ),
                                   ),
                                 );
                               },
-                      child: const Text(
-                        'PROCEED',
+                      child: Text(
+                        _content.proceedButtonLabel,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

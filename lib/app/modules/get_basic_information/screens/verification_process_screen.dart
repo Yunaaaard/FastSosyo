@@ -4,7 +4,9 @@ import 'dart:async';
 import '../../success_eligibility/screens/loan_success_screen.dart';
 
 class VerifyPerson extends StatefulWidget {
-  const VerifyPerson({super.key});
+  const VerifyPerson({super.key, required this.userFullName});
+
+  final String userFullName;
 
   @override
   State<VerifyPerson> createState() => _VerifyPersonState();
@@ -23,7 +25,11 @@ class _VerifyPersonState extends State<VerifyPerson>
       if (_seconds == 1) {
         timer.cancel();
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoanSuccessfulPage()),
+          MaterialPageRoute(
+            builder: (context) => LoanSuccessfulPage(
+              userFullName: widget.userFullName,
+            ),
+          ),
         );
       } else {
         setState(() {

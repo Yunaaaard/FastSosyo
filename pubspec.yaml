@@ -13,12 +13,16 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  pdf: ^3.11.1
   flutter_svg: ^2.1.0
   iconify_flutter: ^0.0.7
   dotted_border: ^2.1.0
   confetti: ^0.7.0
   image_picker: 0.8.9
   file_picker: ^8.1.2
+  path_provider: ^2.1.5
+  signature: ^5.5.0
+  share_plus: ^10.1.2
   
 dev_dependencies:
   flutter_test:
