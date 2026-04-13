@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan/controller/loan_order_controller.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan/models/loan_order_card_model.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan/widgets/loan_order_status_chip.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/pay_with_credits.dart';
 
 class OrderLoanScreen extends StatefulWidget {
   const OrderLoanScreen({super.key});
@@ -331,22 +332,33 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Container(
-                width: 130,
-                height: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(13),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7D3CEB), Color(0xFF6A31DF)],
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) {
+                        return PayCreditsPage(order: order);
+                      },
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 145,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(13),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF7D3CEB), Color(0xFF6A31DF)],
+                    ),
                   ),
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  'Use Credits',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'Use Credits',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

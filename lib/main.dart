@@ -1,3 +1,4 @@
+import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/review_your_loan.dart';
 import 'package:fast_sosyo/app/modules/landing_page/landing_screen.dart';
 import 'package:fast_sosyo/app/modules/register_number_page/register_number_screen.dart';
 import 'package:flutter/material.dart';
