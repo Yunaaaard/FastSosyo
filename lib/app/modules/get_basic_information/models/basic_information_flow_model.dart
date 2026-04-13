@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:fast_sosyo/app/modules/get_basic_information/models/about_yourself_model.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/models/employment_income_model.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/models/selfie_verification_model.dart';

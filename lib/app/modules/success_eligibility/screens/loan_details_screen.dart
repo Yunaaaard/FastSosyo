@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/order_loan_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fast_sosyo/app/modules/otp_verification/screens/otp_verification_screen.dart';
 import 'package:fast_sosyo/app/modules/success_eligibility/constants/loan_agreement_content.dart';
 import 'package:fast_sosyo/app/modules/success_eligibility/controller/loan_details_controller.dart';
 import 'package:fast_sosyo/data/services/loan_agreement_service.dart';
@@ -44,20 +46,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
       builder: (BuildContext context, Widget? child) {
         return Scaffold(
           backgroundColor: const Color(0xFFF6F9FF),
-          appBar: AppBar(
-            backgroundColor: const Color(0xFFF6F9FF),
-            elevation: 0,
-            leading: const SizedBox.shrink(),
-            centerTitle: true,
-            title: const Text(
-              'Loan Offer Details',
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w600,
-                fontSize: 20,
-              ),
-            ),
-          ),
+          appBar: appBar(),
           body: SingleChildScrollView(
             child: Column(
               children: [
@@ -351,7 +340,9 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: controller.contractSigned ? () {} : null,
+                      onPressed: controller.contractSigned
+                          ? _openLoanOtpVerification
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB),
                         disabledBackgroundColor: const Color(0xFFCCCCCC),
@@ -391,6 +382,69 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
           ),
         );
       },
+    );
+  }
+
+  AppBar appBar() {
+    return AppBar(
+          backgroundColor: const Color(0xFFF6F9FF),
+          elevation: 0,
+          leading: const SizedBox.shrink(),
+          centerTitle: true,
+          title: const Text(
+            'Loan Offer Details',
+            style: TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+            ),
+          ),
+        );
+  }
+
+  Future<void> _openLoanOtpVerification() async {
+    if (!mounted) {
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (BuildContext otpContext) {
+          return OtpVerificationPage(
+            title: 'Loan OTP Verification',
+            recipientLabel: 'your registered mobile number',
+            continueLabel: 'Verify & Continue',
+            onVerifyOtp: (String otp) async {
+              await Future<void>.delayed(const Duration(milliseconds: 500));
+              return otp.length == 6;
+            },
+            onVerified: (BuildContext context, String otp) async {
+              if (!mounted) {
+                return;
+              }
+
+              await Navigator.of(context).pushReplacement(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) {
+                    return const OrderLoanScreen();
+                  },
+                ),
+              );
+            },
+            onResend: () {
+              if (!mounted) {
+                return;
+              }
+
+              ScaffoldMessenger.of(otpContext).showSnackBar(
+                const SnackBar(
+                  content: Text('A new OTP has been sent.'),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 

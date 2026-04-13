@@ -1,10 +1,24 @@
-
 import 'package:fast_sosyo/app/modules/dashboard_page/screen/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class OtpVerificationPage extends StatefulWidget {
-  const OtpVerificationPage({super.key});
+  const OtpVerificationPage({
+    super.key,
+    this.title = 'OTP Verification',
+    this.recipientLabel = '+93 9453482113',
+    this.continueLabel = 'Continue',
+    this.onVerifyOtp,
+    this.onVerified,
+    this.onResend,
+  });
+
+  final String title;
+  final String recipientLabel;
+  final String continueLabel;
+  final Future<bool> Function(String otp)? onVerifyOtp;
+  final Future<void> Function(BuildContext context, String otp)? onVerified;
+  final VoidCallback? onResend;
 
   @override
   State<OtpVerificationPage> createState() => _OtpVerificationPageState();
@@ -14,6 +28,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   final List<TextEditingController> _controllers =
       List.generate(6, (_) => TextEditingController());
   final FocusNode _focusNode = FocusNode();
+  bool _isVerifying = false;
+  String? _errorText;
 
   @override
   void dispose() {
@@ -49,6 +65,11 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
           ),
         ),
         onChanged: (value) {
+          if (_errorText != null) {
+            setState(() {
+              _errorText = null;
+            });
+          }
           if (value.isNotEmpty && index < 5) {
             FocusScope.of(context).nextFocus();
           } else if (value.isEmpty && index > 0) {
@@ -57,6 +78,63 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
         },
       ),
     );
+  }
+
+  String _readOtp() {
+    return _controllers.map((TextEditingController c) => c.text.trim()).join();
+  }
+
+  Future<void> _submitOtp() async {
+    if (_isVerifying) {
+      return;
+    }
+
+    final String otp = _readOtp();
+    if (otp.length != 6 || otp.contains(RegExp(r'[^0-9]'))) {
+      setState(() {
+        _errorText = 'Enter the 6-digit code to continue.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isVerifying = true;
+      _errorText = null;
+    });
+
+    try {
+      bool isValid = true;
+      if (widget.onVerifyOtp != null) {
+        isValid = await widget.onVerifyOtp!(otp);
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!isValid) {
+        setState(() {
+          _errorText = 'Invalid OTP. Please try again.';
+        });
+        return;
+      }
+
+      if (widget.onVerified != null) {
+        await widget.onVerified!(context, otp);
+      } else {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => DashboardPage(),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isVerifying = false;
+        });
+      }
+    }
   }
 
   @override
@@ -84,10 +162,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                           height: 220,
                         ),
                         const SizedBox(height: 40),
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(horizontal: 24.0),
                           child: Text(
-                            'OTP Verification',
+                            widget.title,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 26,
@@ -101,7 +179,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 24.0),
                           child: RichText(
                             textAlign: TextAlign.center,
-                            text: const TextSpan(
+                            text: TextSpan(
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,
@@ -112,12 +190,11 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                   style: TextStyle(fontFamily: 'Poppins'),
                                 ),
                                 TextSpan(
-                                  text: '+93 9453482113',
+                                  text: widget.recipientLabel,
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
                                     color: Color(0xFF275DCE),
                                     fontWeight: FontWeight.w500,
-                                    
                                   ),
                                 ),
                               ],
@@ -134,6 +211,22 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                             );
                           }),
                         ),
+                        if (_errorText != null) ...[
+                          const SizedBox(height: 14),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 24.0),
+                            child: Text(
+                              _errorText!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 24),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -148,7 +241,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () {},
+                                onTap: widget.onResend,
                                 child: const Text(
                                   'RESEND',
                                   style: TextStyle(
@@ -163,7 +256,8 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                         ),
                         const Spacer(),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 16.0),
                           child: SizedBox(
                             width: double.infinity,
                             height: 56,
@@ -174,17 +268,27 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => DashboardPage(),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                'Continue',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
-                              ),
+                              onPressed: _isVerifying ? null : _submitOtp,
+                              child: _isVerifying
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          Colors.white,
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      widget.continueLabel,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),

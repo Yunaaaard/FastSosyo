@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:fast_sosyo/app/modules/get_basic_information/controller/basic_information_flow_controller.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/controller/upload_id_controller.dart';
