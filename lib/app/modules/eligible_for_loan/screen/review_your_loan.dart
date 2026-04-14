@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/loan_receipt.dart';
 
 class ReviewLoanPage extends StatelessWidget {
   const ReviewLoanPage({super.key});
@@ -16,19 +17,7 @@ class ReviewLoanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFD9E2EE),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFD9E2EE),
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'Review Your Loan',
-          style: TextStyle(
-            color: Color(0xFF111827),
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
+      appBar: appBar(),
       body: SafeArea(
         child: Column(
           children: [
@@ -53,7 +42,14 @@ class ReviewLoanPage extends StatelessWidget {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) =>
+                            const LoanReceiptPage(),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     backgroundColor: const Color(0xFF2F60C8),
@@ -73,6 +69,22 @@ class ReviewLoanPage extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  AppBar appBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFFD9E2EE),
+      elevation: 0,
+      centerTitle: true,
+      title: const Text(
+        'Review Your Loan',
+        style: TextStyle(
+          color: Color(0xFF111827),
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -272,7 +284,7 @@ class ReviewLoanPage extends StatelessWidget {
           const SizedBox(height: 14),
           _buildScheduleRow(
             installment: '2',
-            title: 'First Installment',
+            title: 'Second Installment',
             date: 'May 15, 2026',
             amount: '1,370.00',
           ),
@@ -289,60 +301,59 @@ class ReviewLoanPage extends StatelessWidget {
     required String amount,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-            color: Color(0xFFddecfc),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            installment,
-            style: const TextStyle(
-              color: Color(0xFF2E5DC5),
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: Color(0xFFddecfc),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                installment,
                 style: const TextStyle(
-                  color: Color(0xFF6A6F76),
-                  fontSize: 16,
+                  color: Color(0xFF2E5DC5),
+                  fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                date,
-                style: const TextStyle(
-                  color: Color(0xFF8B8F95),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xFF6A6F76),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    date,
+                    style: const TextStyle(
+                      color: Color(0xFF8B8F95),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        _buildCurrencyText(
-          amount: amount,
-          amountColor: const Color(0xFF2E5DC5),
-          amountFontSize: 18,
-          weight: FontWeight.w700,
-        ),
-      ],
-     )
-    );
+            ),
+            _buildCurrencyText(
+              amount: amount,
+              amountColor: const Color(0xFF2E5DC5),
+              amountFontSize: 18,
+              weight: FontWeight.w700,
+            ),
+          ],
+        ));
   }
 
   Widget _buildCurrencyText({

@@ -142,7 +142,7 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
         style: TextStyle(
           color: Color(0xFF111827),
           fontSize: 22,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
