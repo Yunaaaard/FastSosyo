@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/loan_receipt.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_balance_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/loan_receipt.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
 
 class ReviewLoanPage extends StatelessWidget {
-  const ReviewLoanPage({super.key});
+  const ReviewLoanPage({
+    super.key,
+    required this.order,
+    required this.firstInstallment,
+    required this.fullyPaid,
+  });
 
-  static const String _orderedAmount = '1,574.08';
+  final LoanOrderCardModel order;
+  final double firstInstallment;
+  final double fullyPaid;
+
   static const String _interestRate = '1.69%';
   static const String _repaymentTerm = '3 Months';
   static const String _processingFee = '250.00';
   static const String _documentationCharges = '45.00';
   static const String _monthlyPayment = '307.02';
-  static const String _totalRepayment = '1,834.08';
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +53,21 @@ class ReviewLoanPage extends StatelessWidget {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
+                    final LoanBalanceCardModel confirmedLoan =
+                        LoanBalanceCardModel(
+                      brandName: order.brandName,
+                      dateOrdered: order.dateOrdered,
+                      timeString: _formatTimeString(DateTime.now()),
+                      orderID: order.orderId,
+                      firstInstallment: firstInstallment,
+                      fullyPaid: fullyPaid,
+                      balance: (fullyPaid - firstInstallment)
+                          .clamp(0, double.infinity)
+                          .toDouble(),
+                    );
+
+                    LoanBalanceService.instance.addConfirmedLoan(confirmedLoan);
+
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (BuildContext context) =>
@@ -141,7 +166,8 @@ class ReviewLoanPage extends StatelessWidget {
           const SizedBox(height: 18),
           const Divider(color: Color(0xFFBFC3CA), thickness: 1),
           const SizedBox(height: 4),
-          _buildDetailRow('Ordered Amount', _orderedAmount, currency: true),
+          _buildDetailRow('Ordered Amount', order.orderedAmount,
+              currency: true),
           _buildDetailRow('Interest Rate', _interestRate),
           _buildDetailRow('Repayment Term', _repaymentTerm, highlight: true),
           _buildDetailRow('Processing Fee (2.5%)', _processingFee,
@@ -152,7 +178,7 @@ class ReviewLoanPage extends StatelessWidget {
           const Divider(color: Color(0xFFBFC3CA), thickness: 1),
           const SizedBox(height: 18),
           _buildCurrencyText(
-            amount: _totalRepayment,
+            amount: _formatMoney(fullyPaid),
             amountColor: const Color(0xFF2E5DC5),
             amountFontSize: 35,
             weight: FontWeight.w700,
@@ -279,14 +305,16 @@ class ReviewLoanPage extends StatelessWidget {
             installment: '1',
             title: 'First Installment',
             date: 'April 15, 2026',
-            amount: '1,370.00',
+            amount: _formatMoney(firstInstallment),
           ),
           const SizedBox(height: 14),
           _buildScheduleRow(
             installment: '2',
             title: 'Second Installment',
             date: 'May 15, 2026',
-            amount: '1,370.00',
+            amount: _formatMoney((fullyPaid - firstInstallment)
+                .clamp(0, double.infinity)
+                .toDouble()),
           ),
           const SizedBox(height: 10),
         ],
@@ -386,5 +414,15 @@ class ReviewLoanPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatTimeString(DateTime dateTime) {
+    final String hour = dateTime.hour.toString().padLeft(2, '0');
+    final String minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  String _formatMoney(double amount) {
+    return amount.toStringAsFixed(2);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/models/loan_order_card_model.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/review_your_loan.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/review_your_loan.dart';
 
 class PayCreditsPage extends StatefulWidget {
   const PayCreditsPage({super.key, required this.order});
@@ -110,8 +110,11 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (BuildContext context) =>
-                            const ReviewLoanPage(),
+                        builder: (BuildContext context) => ReviewLoanPage(
+                          order: widget.order,
+                          firstInstallment: topMonthly,
+                          fullyPaid: totalRepayment,
+                        ),
                       ),
                     );
                   },

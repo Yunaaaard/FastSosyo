@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/models/loan_order_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
 
 class LoanOrderController extends ChangeNotifier {
   LoanOrderController();

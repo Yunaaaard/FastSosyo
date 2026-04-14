@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/controller/loan_order_controller.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/models/loan_order_card_model.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/widgets/loan_order_status_chip.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/pay_with_credits.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/controller/loan_order_controller.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_balance_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/widgets/loan_order_status_chip.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/pay_with_credits.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
 
 class OrderLoanScreen extends StatefulWidget {
   const OrderLoanScreen({super.key});
@@ -14,17 +16,32 @@ class OrderLoanScreen extends StatefulWidget {
 
 class _OrderLoanScreenState extends State<OrderLoanScreen> {
   late final LoanOrderController _controller;
+  late final LoanBalanceService _balanceService;
 
   @override
   void initState() {
     super.initState();
     _controller = LoanOrderController();
+    _balanceService = LoanBalanceService.instance;
+    _balanceService.addListener(_onBalanceChanged);
   }
 
   @override
   void dispose() {
+    _balanceService.removeListener(_onBalanceChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onBalanceChanged() {
+    final int? requestedTab = _balanceService.consumeRequestedTopTab();
+    if (requestedTab != null) {
+      _controller.selectTopTab(requestedTab);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -32,6 +49,9 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
     return AnimatedBuilder(
       animation: _controller,
       builder: (BuildContext context, Widget? child) {
+        final List<LoanBalanceCardModel> balances =
+            _balanceService.confirmedBalances;
+
         return Scaffold(
           backgroundColor: const Color(0xFFFFFFFF),
           appBar: appBar(context),
@@ -216,27 +236,39 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                             ],
                           ],
                         )
-                      : Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SvgPicture.asset(
-                                'assets/icons/loan-orders-icon.svg',
-                                width: 250,
-                                fit: BoxFit.contain,
+                      : balances.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/icons/order-balance-icon.svg',
+                                    width: 200,
+                                    fit: BoxFit.contain,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  const Text(
+                                    'No Balance Available',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xFF9AA0A7),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 24),
-                              const Text(
-                                'No Orders Available',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w400,
-                                  color: Color(0xFF9AA0A7),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                            )
+                          : ListView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                              children: [
+                                for (final LoanBalanceCardModel balance
+                                    in balances) ...[
+                                  _buildBalanceCard(balance),
+                                  const SizedBox(height: 14),
+                                ],
+                              ],
+                            ),
                 ),
               ],
             ),
@@ -474,6 +506,250 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(LoanBalanceCardModel loan) {
+    final double progress = loan.fullyPaid <= 0
+        ? 0
+        : (loan.firstInstallment / loan.fullyPaid).clamp(0.0, 1.0);
+    final int progressPercent = (progress * 100).round();
+
+    return Dismissible(
+      key: ValueKey(loan.orderID),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFEF4444),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+      onDismissed: (direction) {
+        _balanceService.removeConfirmedLoan(loan.orderID);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromARGB(20, 0, 0, 0),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Fast Sosyo ${loan.brandName}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D7077),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        loan.orderID,
+                        style: const TextStyle(
+                          color: Color(0xFF6D7077),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${loan.dateOrdered}\n${loan.timeString}',
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    color: Color(0xFF868A90),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 7),
+            _buildDashedDivider(),
+            const SizedBox(height: 7),
+            Row(
+              children: [
+                const Text(
+                  'Repayment Progress',
+                  style: TextStyle(
+                    color: Color(0xFF70757D),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '$progressPercent%',
+                  style: const TextStyle(
+                    color: Color(0xFF2E5DC5),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                minHeight: 16,
+                value: progress,
+                color: const Color(0xFF3D73D6),
+                backgroundColor: const Color(0xFFD8E4F6),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _buildPesoText(
+                  amount: loan.firstInstallment,
+                  color: const Color(0xFF858A92),
+                  fontSize: 13,
+                  weight: FontWeight.w500,
+                ),
+                const Spacer(),
+                _buildPesoText(
+                  amount: loan.fullyPaid,
+                  color: const Color(0xFF858A92),
+                  fontSize: 13,
+                  weight: FontWeight.w500,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildDashedDivider(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Balance',
+                        style: TextStyle(
+                          color: Color(0xFF2E3137),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      _buildPesoText(
+                        amount: loan.balance,
+                        color: const Color(0xFF6B3CE2),
+                        fontSize: 23,
+                        weight: FontWeight.w700,
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    width: 170,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(13),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF7D3CEB), Color(0xFF6A31DF)],
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Pay Now',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPesoText({
+    required double amount,
+    required Color color,
+    required double fontSize,
+    required FontWeight weight,
+  }) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: '\u20B1 ',
+            style: TextStyle(
+              color: color,
+              fontSize: fontSize,
+              fontWeight: weight,
+              fontFamily: 'Arial',
+            ),
+          ),
+          TextSpan(
+            text: _formatAmount(amount),
+            style: TextStyle(
+              color: color,
+              fontSize: fontSize,
+              fontWeight: weight,
+              fontFamily: 'Poppins',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatAmount(double amount) {
+    final String value = amount.toStringAsFixed(2);
+    final List<String> parts = value.split('.');
+    final String whole = parts[0].replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (Match match) => ',',
+    );
+    return '$whole.${parts[1]}';
+  }
+
+  Widget _buildDashedDivider() {
+    return Row(
+      children: List.generate(
+        50,
+        (index) => Expanded(
+          child: Container(
+            height: 1,
+            margin: const EdgeInsets.symmetric(horizontal: 1),
+            color: const Color(0xFFE5E8ED),
+          ),
+        ),
       ),
     );
   }

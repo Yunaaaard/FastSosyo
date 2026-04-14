@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:fast_sosyo/app/modules/eligible_for_loan/screen/order_loan_dashboard.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/order_loan_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fast_sosyo/app/modules/otp_verification/screens/otp_verification_screen.dart';
@@ -387,19 +387,19 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
 
   AppBar appBar() {
     return AppBar(
-          backgroundColor: const Color(0xFFF6F9FF),
-          elevation: 0,
-          leading: const SizedBox.shrink(),
-          centerTitle: true,
-          title: const Text(
-            'Loan Offer Details',
-            style: TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.w600,
-              fontSize: 20,
-            ),
-          ),
-        );
+      backgroundColor: const Color(0xFFF6F9FF),
+      elevation: 0,
+      leading: const SizedBox.shrink(),
+      centerTitle: true,
+      title: const Text(
+        'Loan Offer Details',
+        style: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.w600,
+          fontSize: 20,
+        ),
+      ),
+    );
   }
 
   Future<void> _openLoanOtpVerification() async {
