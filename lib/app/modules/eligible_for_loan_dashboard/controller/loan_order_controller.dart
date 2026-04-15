@@ -26,8 +26,8 @@ class LoanOrderController extends ChangeNotifier {
       orderId: 'AL-002',
     ),
     LoanOrderCardModel(
-      brandName: 'Monde Nissin',
-      brandLogo: 'assets/images/monde-sample-logo.png',
+      brandName: 'CDO',
+      brandLogo: 'assets/images/cdo-logo.png',
       status: 'In Transit',
       orderedAmount: '4,120.00',
       productCount: 8,
@@ -35,8 +35,8 @@ class LoanOrderController extends ChangeNotifier {
       orderId: 'AL-003',
     ),
     LoanOrderCardModel(
-      brandName: 'Nestle',
-      brandLogo: 'assets/images/nestle-sample-logo.png',
+      brandName: 'Shell',
+      brandLogo: 'assets/images/shell-logo.png',
       status: 'Delivered',
       orderedAmount: '6,210.75',
       productCount: 19,
@@ -44,8 +44,8 @@ class LoanOrderController extends ChangeNotifier {
       orderId: 'AL-005',
     ),
     LoanOrderCardModel(
-      brandName: 'Nestle',
-      brandLogo: 'assets/images/nestle-sample-logo.png',
+      brandName: 'Nutri Asia',
+      brandLogo: 'assets/images/nutriasia-logo.png',
       status: 'Cancelled',
       orderedAmount: '980.00',
       productCount: 5,

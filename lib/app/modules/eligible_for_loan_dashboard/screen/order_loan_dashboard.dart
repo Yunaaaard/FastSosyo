@@ -3,9 +3,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/controller/loan_order_controller.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_balance_card_model.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/transaction_model.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/widgets/loan_order_status_chip.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/pay_with_credits.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/remaining_balance_summary.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
+import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/screens/pay_sosyo_credits.dart';
 
 class OrderLoanScreen extends StatefulWidget {
   const OrderLoanScreen({super.key});
@@ -51,6 +54,8 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
       builder: (BuildContext context, Widget? child) {
         final List<LoanBalanceCardModel> balances =
             _balanceService.confirmedBalances;
+        final List<TransactionModel> recentTransactions =
+            TransactionModel.getSampleTransactions();
 
         return Scaffold(
           backgroundColor: const Color(0xFFFFFFFF),
@@ -107,19 +112,33 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: Container(
+                              child: SizedBox(
                                 height: 60,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFFFFF),
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'Pay with Sosyo Credits',
-                                  style: TextStyle(
-                                    color: Color(0xFF6A3DE2),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFFFFFF),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (BuildContext context) {
+                                          return const PaySosyoCreditsScreen();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Pay with Sosyo Credits',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Color(0xFF6A3DE2),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -267,6 +286,13 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                                   _buildBalanceCard(balance),
                                   const SizedBox(height: 14),
                                 ],
+                                const SizedBox(height: 2),
+                                _buildRecentTransactionsHeader(),
+                                const SizedBox(height: 16),
+                                for (final TransactionModel transaction
+                                    in recentTransactions) ...[
+                                  _buildRecentTransactionCard(transaction),
+                                ],
                               ],
                             ),
                 ),
@@ -323,7 +349,7 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
               Container(
                 width: 60,
                 height: 60,
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFFFFF),
                   borderRadius: BorderRadius.circular(12),
@@ -380,8 +406,21 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(13),
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF7D3CEB), Color(0xFF6A31DF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF8B5CF6),
+                        Color(0xFF7C3AED),
+                        Color(0xFF5B21B6),
+                      ],
                     ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(38, 91, 33, 182),
+                        blurRadius: 14,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
                   ),
                   alignment: Alignment.center,
                   child: const Text(
@@ -557,11 +596,12 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Fast Sosyo ${loan.brandName}',
+                        loan.brandName,
                         style: const TextStyle(
                           color: Color(0xFF6D7077),
                           fontSize: 17,
-                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -570,7 +610,8 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                         style: const TextStyle(
                           color: Color(0xFF6D7077),
                           fontSize: 17,
-                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -583,14 +624,13 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                   style: const TextStyle(
                     color: Color(0xFF868A90),
                     fontSize: 17,
+                    fontFamily: 'Poppins',
                     fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 7),
-            _buildDashedDivider(),
-            const SizedBox(height: 7),
+            const SizedBox(height: 14),
             Row(
               children: [
                 const Text(
@@ -612,11 +652,11 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                minHeight: 16,
+                minHeight: 12,
                 value: progress,
                 color: const Color(0xFF3D73D6),
                 backgroundColor: const Color(0xFFD8E4F6),
@@ -640,9 +680,7 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildDashedDivider(),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -661,21 +699,35 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                       _buildPesoText(
                         amount: loan.balance,
                         color: const Color(0xFF6B3CE2),
-                        fontSize: 23,
+                        fontSize: 24,
                         weight: FontWeight.w700,
                       ),
                     ],
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) {
+                          return PaymentPinnedPage(balance: loan);
+                        },
+                      ),
+                    );
+                  },
                   child: Container(
                     width: 170,
                     height: 50,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(13),
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF7D3CEB), Color(0xFF6A31DF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF8B5CF6),
+                          Color(0xFF7C3AED),
+                          Color(0xFF5B21B6),
+                        ],
                       ),
                     ),
                     alignment: Alignment.center,
@@ -684,7 +736,7 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -739,17 +791,141 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
     return '$whole.${parts[1]}';
   }
 
-  Widget _buildDashedDivider() {
+  Widget _buildRecentTransactionsHeader() {
     return Row(
-      children: List.generate(
-        50,
-        (index) => Expanded(
-          child: Container(
-            height: 1,
-            margin: const EdgeInsets.symmetric(horizontal: 1),
-            color: const Color(0xFFE5E8ED),
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'RECENT TRANSACTIONS',
+          style: TextStyle(
+            color: Color(0xFF9AA0A7),
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
+        GestureDetector(
+          onTap: () {
+            // Navigate to all transactions
+          },
+          child: const Text(
+            'VIEW ALL',
+            style: TextStyle(
+              color: Color(0xFF2E5DC5),
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentTransactionCard(TransactionModel transaction) {
+    final Color statusColor =
+        transaction.transactionType == TransactionType.upcoming
+            ? const Color(0xFFFF9800)
+            : const Color(0xFF4CAF50);
+
+    final Color iconBgColor =
+        transaction.transactionType == TransactionType.upcoming
+            ? const Color(0xFFFFF3E0)
+            : const Color(0xFFE8F0FD);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromARGB(8, 0, 0, 0),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            alignment: Alignment.center,
+            child: SvgPicture.asset(
+              transaction.iconPath,
+              width: 20,
+              height: 20,
+              fit: BoxFit.contain,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  transaction.title,
+                  style: const TextStyle(
+                    color: Color.fromARGB(255, 108, 114, 124),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  transaction.date,
+                  style: const TextStyle(
+                    color: Color.fromARGB(255, 108, 114, 124),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              RichText(
+                text: TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: '-\u20B1 ',
+                      style: TextStyle(
+                        color: Color(0xFF2E3137),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    TextSpan(
+                      text: _formatAmount(transaction.amount),
+                      style: const TextStyle(
+                        color: Color(0xFF2E3137),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                transaction.status,
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

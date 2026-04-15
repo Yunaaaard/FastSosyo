@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_balance_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_receipt_data.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/review_loan_data.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/loan_receipt.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/review_your_loan.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
 
 class PayCreditsPage extends StatefulWidget {
   const PayCreditsPage({super.key, required this.order});
@@ -111,9 +116,70 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (BuildContext context) => ReviewLoanPage(
-                          order: widget.order,
-                          firstInstallment: topMonthly,
-                          fullyPaid: totalRepayment,
+                          data: ReviewLoanData(
+                            monthlyPayment: summaryMonthly,
+                            orderedAmount: _parseAmount(widget.order.orderedAmount),
+                            interestRate: '1.69%',
+                            repaymentTerm: '$_selectedTermMonths Months',
+                            processingFee: 250.00,
+                            documentationCharges: 45.00,
+                            totalRepayment: totalRepayment,
+                            schedule: <ReviewRepaymentScheduleItem>[
+                              ReviewRepaymentScheduleItem(
+                                installment: '1',
+                                title: 'First Installment',
+                                date: 'April 15, 2026',
+                                amount: topMonthly,
+                              ),
+                              ReviewRepaymentScheduleItem(
+                                installment: '2',
+                                title: 'Second Installment',
+                                date: 'May 15, 2026',
+                                amount: (totalRepayment - topMonthly)
+                                    .clamp(0, double.infinity)
+                                    .toDouble(),
+                              ),
+                            ],
+                          ),
+                          onConfirm: (BuildContext context) {
+                            final LoanBalanceCardModel confirmedLoan =
+                                LoanBalanceCardModel(
+                              brandName: widget.order.brandName,
+                              dateOrdered: widget.order.dateOrdered,
+                              timeString: _formatTimeString(DateTime.now()),
+                              orderID: widget.order.orderId,
+                              firstInstallment: topMonthly,
+                              fullyPaid: totalRepayment,
+                              balance: (totalRepayment - topMonthly)
+                                  .clamp(0, double.infinity)
+                                  .toDouble(),
+                            );
+
+                            LoanBalanceService.instance
+                                .addConfirmedLoan(confirmedLoan);
+
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (BuildContext context) =>
+                                    LoanReceiptPage(
+                                  data: LoanReceiptData(
+                                    from: 'Daven Reez Nemenzo',
+                                    to: 'Fast Sosyo ${widget.order.brandName}',
+                                    referenceNo: widget.order.orderId,
+                                    dateTime:
+                                        '${widget.order.dateOrdered} | ${_formatTimeString(DateTime.now())}',
+                                    amountSent: totalRepayment,
+                                  ),
+                                  onBackToHome: (BuildContext context) {
+                                    Navigator.of(context)
+                                        .popUntil((Route<dynamic> route) {
+                                      return route.isFirst;
+                                    });
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );
@@ -328,6 +394,16 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
         ),
       ),
     );
+  }
+
+  double _parseAmount(String value) {
+    return double.tryParse(value.replaceAll(',', '')) ?? 0;
+  }
+
+  String _formatTimeString(DateTime dateTime) {
+    final String hour = dateTime.hour.toString().padLeft(2, '0');
+    final String minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   Widget _buildMonthlyDateCard() {

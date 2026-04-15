@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_receipt_data.dart';
+
+typedef LoanReceiptBackHandler = void Function(BuildContext context);
 
 class LoanReceiptPage extends StatelessWidget {
-  const LoanReceiptPage({super.key});
+  const LoanReceiptPage({
+    super.key,
+    required this.data,
+    required this.onBackToHome,
+  });
+
+  final LoanReceiptData data;
+  final LoanReceiptBackHandler onBackToHome;
 
   static const Color _pageBg = Color(0xFFD3D3D3);
   static const Color _primaryBlue = Color(0xFF2E5DC8);
@@ -35,6 +45,7 @@ class LoanReceiptPage extends StatelessWidget {
                             child: Center(
                               child: _ReceiptCard(
                                 width: width - (horizontalPadding * 2),
+                                data: data,
                               ),
                             ),
                           ),
@@ -44,11 +55,8 @@ class LoanReceiptPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 26),
                   _BackToHomeButton(
-                    onPressed: () {
-                      Navigator.of(context).popUntil((Route<dynamic> route) {
-                        return route.isFirst;
-                      });
-                    },
+                    label: data.backButtonLabel,
+                    onPressed: () => onBackToHome(context),
                   ),
                   const SizedBox(height: 26),
                 ],
@@ -62,9 +70,13 @@ class LoanReceiptPage extends StatelessWidget {
 }
 
 class _ReceiptCard extends StatelessWidget {
-  const _ReceiptCard({required this.width});
+  const _ReceiptCard({
+    required this.width,
+    required this.data,
+  });
 
   final double width;
+  final LoanReceiptData data;
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +128,16 @@ class _ReceiptCard extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _ReceiptHeaderSection(scale: scale),
+                        _ReceiptHeaderSection(
+                          scale: scale,
+                          title: data.title,
+                          subtitle: data.subtitle,
+                        ),
                         const Spacer(),
-                        _ReceiptDetailsSection(scale: scale),
+                        _ReceiptDetailsSection(
+                          scale: scale,
+                          data: data,
+                        ),
                       ],
                     ),
                   ),
@@ -133,16 +152,22 @@ class _ReceiptCard extends StatelessWidget {
 }
 
 class _ReceiptHeaderSection extends StatelessWidget {
-  const _ReceiptHeaderSection({required this.scale});
+  const _ReceiptHeaderSection({
+    required this.scale,
+    required this.title,
+    required this.subtitle,
+  });
 
   final double scale;
+  final String title;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Text(
-          'Thank you!',
+          title,
           style: TextStyle(
             color: const Color(0xFF171B22),
             fontSize: 23 * scale,
@@ -152,7 +177,7 @@ class _ReceiptHeaderSection extends StatelessWidget {
         ),
         SizedBox(height: 10 * scale),
         Text(
-          'Your payment has been sent\nsuccessfully',
+          subtitle,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: const Color(0xFF8A8D91),
@@ -167,32 +192,36 @@ class _ReceiptHeaderSection extends StatelessWidget {
 }
 
 class _ReceiptDetailsSection extends StatelessWidget {
-  const _ReceiptDetailsSection({required this.scale});
+  const _ReceiptDetailsSection({
+    required this.scale,
+    required this.data,
+  });
 
   final double scale;
+  final LoanReceiptData data;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const _ReceiptInfoRow(
+        _ReceiptInfoRow(
           label: 'From:',
-          value: 'Daven Reez Nemenzo',
+          value: data.from,
         ),
         SizedBox(height: 24 * scale),
-        const _ReceiptInfoRow(
+        _ReceiptInfoRow(
           label: 'To:',
-          value: 'Fast Sosyo Nestle',
+          value: data.to,
         ),
         SizedBox(height: 24 * scale),
-        const _ReceiptInfoRow(
+        _ReceiptInfoRow(
           label: 'Ref No:',
-          value: '1123 5093 2134 8893',
+          value: data.referenceNo,
         ),
         SizedBox(height: 24 * scale),
-        const _ReceiptInfoRow(
+        _ReceiptInfoRow(
           label: 'Date:',
-          value: '03-25-26 | 04:48',
+          value: data.dateTime,
         ),
         SizedBox(height: 34 * scale),
         Text(
@@ -204,33 +233,50 @@ class _ReceiptDetailsSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: 6 * scale),
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: '\u20B1 ',
-                style: TextStyle(
-                  color: LoanReceiptPage._primaryBlue,
-                  fontSize: 40 * scale,
-                  fontWeight: FontWeight.w700,
-                  height: 1.08,
-                ),
+        SizedBox(
+          width: double.infinity,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '\u20B1 ',
+                    style: TextStyle(
+                      color: LoanReceiptPage._primaryBlue,
+                      fontSize: 40 * scale,
+                      fontWeight: FontWeight.w700,
+                      height: 1.08,
+                    ),
+                  ),
+                  TextSpan(
+                    text: _formatMoney(data.amountSent),
+                    style: TextStyle(
+                      color: LoanReceiptPage._primaryBlue,
+                      fontSize: 35 * scale,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w700,
+                      height: 1.08,
+                    ),
+                  ),
+                ],
               ),
-              TextSpan(
-                text: '231,055.08',
-                style: TextStyle(
-                  color: LoanReceiptPage._primaryBlue,
-                  fontSize: 35 * scale,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                  height: 1.08,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ],
     );
+  }
+
+  String _formatMoney(double amount) {
+    final String value = amount.toStringAsFixed(2);
+    final List<String> parts = value.split('.');
+    final String whole = parts[0].replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (Match match) => ',',
+    );
+    return '$whole.${parts[1]}';
   }
 }
 
@@ -276,9 +322,13 @@ class _ReceiptInfoRow extends StatelessWidget {
 }
 
 class _BackToHomeButton extends StatelessWidget {
-  const _BackToHomeButton({required this.onPressed});
+  const _BackToHomeButton({
+    required this.onPressed,
+    required this.label,
+  });
 
   final VoidCallback onPressed;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -294,9 +344,9 @@ class _BackToHomeButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: const Text(
-          'Back to Home',
-          style: TextStyle(
+        child: Text(
+          label,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w500,

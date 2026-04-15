@@ -1,33 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_balance_card_model.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/loan_receipt.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/review_loan_data.dart';
+
+typedef ReviewLoanConfirmHandler = void Function(BuildContext context);
 
 class ReviewLoanPage extends StatelessWidget {
   const ReviewLoanPage({
     super.key,
-    required this.order,
-    required this.firstInstallment,
-    required this.fullyPaid,
+    required this.data,
+    required this.onConfirm,
   });
 
-  final LoanOrderCardModel order;
-  final double firstInstallment;
-  final double fullyPaid;
-
-  static const String _interestRate = '1.69%';
-  static const String _repaymentTerm = '3 Months';
-  static const String _processingFee = '250.00';
-  static const String _documentationCharges = '45.00';
-  static const String _monthlyPayment = '307.02';
+  final ReviewLoanData data;
+  final ReviewLoanConfirmHandler onConfirm;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFD9E2EE),
-      appBar: appBar(),
+      appBar: _appBar(),
       body: SafeArea(
         child: Column(
           children: [
@@ -38,7 +29,7 @@ class ReviewLoanPage extends StatelessWidget {
                   children: [
                     _buildLoanSummaryCard(),
                     const SizedBox(height: 20),
-                    _buildRepaymentScheduleCard(),
+                    _buildRepaymentScheduleCard(context),
                     const SizedBox(height: 20),
                     _buildDisclaimerBlock(),
                     const SizedBox(height: 8),
@@ -52,29 +43,7 @@ class ReviewLoanPage extends StatelessWidget {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
-                    final LoanBalanceCardModel confirmedLoan =
-                        LoanBalanceCardModel(
-                      brandName: order.brandName,
-                      dateOrdered: order.dateOrdered,
-                      timeString: _formatTimeString(DateTime.now()),
-                      orderID: order.orderId,
-                      firstInstallment: firstInstallment,
-                      fullyPaid: fullyPaid,
-                      balance: (fullyPaid - firstInstallment)
-                          .clamp(0, double.infinity)
-                          .toDouble(),
-                    );
-
-                    LoanBalanceService.instance.addConfirmedLoan(confirmedLoan);
-
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) =>
-                            const LoanReceiptPage(),
-                      ),
-                    );
-                  },
+                  onPressed: () => onConfirm(context),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     backgroundColor: const Color(0xFF2F60C8),
@@ -86,7 +55,7 @@ class ReviewLoanPage extends StatelessWidget {
                     'Confirm and Continue',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 44 / 2,
+                      fontSize: 22,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -99,7 +68,7 @@ class ReviewLoanPage extends StatelessWidget {
     );
   }
 
-  AppBar appBar() {
+  AppBar _appBar() {
     return AppBar(
       backgroundColor: const Color(0xFFD9E2EE),
       elevation: 0,
@@ -166,19 +135,18 @@ class ReviewLoanPage extends StatelessWidget {
           const SizedBox(height: 18),
           const Divider(color: Color(0xFFBFC3CA), thickness: 1),
           const SizedBox(height: 4),
-          _buildDetailRow('Ordered Amount', order.orderedAmount,
+          _buildDetailRow('Ordered Amount', data.orderedAmount, currency: true),
+          _buildDetailRow('Interest Rate', data.interestRate),
+          _buildDetailRow('Repayment Term', data.repaymentTerm),
+          _buildDetailRow('Processing Fee (2.5%)', data.processingFee,
               currency: true),
-          _buildDetailRow('Interest Rate', _interestRate),
-          _buildDetailRow('Repayment Term', _repaymentTerm, highlight: true),
-          _buildDetailRow('Processing Fee (2.5%)', _processingFee,
-              currency: true),
-          _buildDetailRow('Documentation Charges', _documentationCharges,
+          _buildDetailRow('Documentation Charges', data.documentationCharges,
               currency: true),
           const SizedBox(height: 4),
           const Divider(color: Color(0xFFBFC3CA), thickness: 1),
           const SizedBox(height: 18),
           _buildCurrencyText(
-            amount: _formatMoney(fullyPaid),
+            amount: data.totalRepayment,
             amountColor: const Color(0xFF2E5DC5),
             amountFontSize: 35,
             weight: FontWeight.w700,
@@ -210,7 +178,7 @@ class ReviewLoanPage extends StatelessWidget {
         ),
         const Spacer(),
         _buildCurrencyText(
-          amount: _monthlyPayment,
+          amount: data.monthlyPayment,
           amountColor: const Color(0xFF2E5DC5),
           amountFontSize: 22,
           weight: FontWeight.w700,
@@ -221,13 +189,9 @@ class ReviewLoanPage extends StatelessWidget {
 
   Widget _buildDetailRow(
     String label,
-    String value, {
+    dynamic value, {
     bool currency = false,
-    bool highlight = false,
   }) {
-    final Color valueColor = const Color(0xFF2E5DC5);
-    final FontWeight valueWeight = FontWeight.w700;
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
       child: Row(
@@ -244,17 +208,17 @@ class ReviewLoanPage extends StatelessWidget {
           ),
           currency
               ? _buildCurrencyText(
-                  amount: value,
+                  amount: value as double,
                   amountColor: const Color(0xFF2E5DC5),
                   amountFontSize: 17,
                   weight: FontWeight.w700,
                 )
               : Text(
-                  value,
-                  style: TextStyle(
-                    color: valueColor,
+                  value.toString(),
+                  style: const TextStyle(
+                    color: Color(0xFF2E5DC5),
                     fontSize: 17,
-                    fontWeight: valueWeight,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
         ],
@@ -262,7 +226,10 @@ class ReviewLoanPage extends StatelessWidget {
     );
   }
 
-  Widget _buildRepaymentScheduleCard() {
+  Widget _buildRepaymentScheduleCard(BuildContext context) {
+    final int teaserCount =
+        data.schedule.length >= 2 ? 2 : data.schedule.length;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -301,91 +268,147 @@ class ReviewLoanPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          _buildScheduleRow(
-            installment: '1',
-            title: 'First Installment',
-            date: 'April 15, 2026',
-            amount: _formatMoney(firstInstallment),
-          ),
-          const SizedBox(height: 14),
-          _buildScheduleRow(
-            installment: '2',
-            title: 'Second Installment',
-            date: 'May 15, 2026',
-            amount: _formatMoney((fullyPaid - firstInstallment)
-                .clamp(0, double.infinity)
-                .toDouble()),
-          ),
+          for (int i = 0; i < teaserCount; i++) ...[
+            _buildScheduleRow(item: data.schedule[i]),
+            if (i != teaserCount - 1) const SizedBox(height: 14),
+          ],
+          if (data.schedule.length > 2) ...[
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: () => _showAllRepaymentDatesModal(context),
+              child: Text(
+                'View all ${data.schedule.length} Dates',
+                style: const TextStyle(
+                  color: Color(0xFF2E5DC5),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
         ],
       ),
     );
   }
 
-  Widget _buildScheduleRow({
-    required String installment,
-    required String title,
-    required String date,
-    required String amount,
-  }) {
-    return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                color: Color(0xFFddecfc),
-                shape: BoxShape.circle,
+  void _showAllRepaymentDatesModal(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext modalContext) {
+        return Container(
+          height: MediaQuery.of(modalContext).size.height * 0.72,
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1D5DB),
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
-              alignment: Alignment.center,
-              child: Text(
-                installment,
+              const SizedBox(height: 14),
+              Text(
+                'Repayment Schedule (${data.schedule.length} Dates)',
                 style: const TextStyle(
-                  color: Color(0xFF2E5DC5),
-                  fontSize: 20,
+                  color: Color(0xFF111827),
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              const SizedBox(height: 14),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: data.schedule.length,
+                  separatorBuilder: (BuildContext context, int index) {
+                    return const SizedBox(height: 8);
+                  },
+                  itemBuilder: (BuildContext context, int index) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: _buildScheduleRow(item: data.schedule[index]),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildScheduleRow({required ReviewRepaymentScheduleItem item}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: Color(0xFFddecfc),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xFF6A6F76),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    date,
-                    style: const TextStyle(
-                      color: Color(0xFF8B8F95),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
+            alignment: Alignment.center,
+            child: Text(
+              item.installment,
+              style: const TextStyle(
+                color: Color(0xFF2E5DC5),
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            _buildCurrencyText(
-              amount: amount,
-              amountColor: const Color(0xFF2E5DC5),
-              amountFontSize: 18,
-              weight: FontWeight.w700,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  style: const TextStyle(
+                    color: Color(0xFF6A6F76),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.date,
+                  style: const TextStyle(
+                    color: Color(0xFF8B8F95),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ));
+          ),
+          _buildCurrencyText(
+            amount: item.amount,
+            amountColor: const Color(0xFF2E5DC5),
+            amountFontSize: 18,
+            weight: FontWeight.w700,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCurrencyText({
-    required String amount,
+    required double amount,
     required Color amountColor,
     required double amountFontSize,
     required FontWeight weight,
@@ -403,7 +426,7 @@ class ReviewLoanPage extends StatelessWidget {
             ),
           ),
           TextSpan(
-            text: amount,
+            text: _formatMoney(amount),
             style: TextStyle(
               color: amountColor,
               fontSize: amountFontSize,
@@ -416,13 +439,13 @@ class ReviewLoanPage extends StatelessWidget {
     );
   }
 
-  String _formatTimeString(DateTime dateTime) {
-    final String hour = dateTime.hour.toString().padLeft(2, '0');
-    final String minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
   String _formatMoney(double amount) {
-    return amount.toStringAsFixed(2);
+    final String value = amount.toStringAsFixed(2);
+    final List<String> parts = value.split('.');
+    final String whole = parts[0].replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (Match match) => ',',
+    );
+    return '$whole.${parts[1]}';
   }
 }
