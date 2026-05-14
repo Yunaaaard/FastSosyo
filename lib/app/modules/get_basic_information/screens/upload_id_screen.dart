@@ -4,6 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/controller/upload_id_controller.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/screens/selfie_verification_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class UploadIDScreen extends StatefulWidget {
   const UploadIDScreen({Key? key, this.flowController}) : super(key: key);
@@ -29,13 +30,16 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
   @override
   void initState() {
     super.initState();
-    _ownsFlowController = widget.flowController == null;
-    _flowController = widget.flowController ?? BasicInformationFlowController();
+    _ownsFlowController = widget.flowController == null &&
+        !Get.isRegistered<BasicInformationFlowController>();
+    _flowController = widget.flowController ??
+        (Get.isRegistered<BasicInformationFlowController>()
+            ? Get.find<BasicInformationFlowController>()
+            : BasicInformationFlowController());
     _controller = _flowController.uploadIdController;
   }
 
   Future<void> _pickFrontId() async {
-    setState(() {});
     final String? errorMessage = await _controller.pickFrontId();
     if (!mounted) {
       return;
@@ -45,11 +49,9 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
         SnackBar(content: Text(errorMessage)),
       );
     }
-    setState(() {});
   }
 
   Future<void> _pickBackId() async {
-    setState(() {});
     final String? errorMessage = await _controller.pickBackId();
     if (!mounted) {
       return;
@@ -59,13 +61,12 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
         SnackBar(content: Text(errorMessage)),
       );
     }
-    setState(() {});
   }
 
   @override
   void dispose() {
     if (_ownsFlowController) {
-      _flowController.dispose();
+      _flowController.onClose();
     }
     super.dispose();
   }
@@ -226,51 +227,49 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _controller.model.idType,
-                      items: _idTypes
-                          .map(
-                            (idType) => DropdownMenuItem<String>(
-                              value: idType,
-                              child: Text(idType),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value == null) {
-                          return;
-                        }
+                Obx(() => Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE0E0E0)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _controller.model.idType,
+                          items: _idTypes
+                              .map(
+                                (idType) => DropdownMenuItem<String>(
+                                  value: idType,
+                                  child: Text(idType),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) {
+                              return;
+                            }
 
-                        setState(() {
-                          _controller.setIdType(value);
-                        });
-                      },
-                    ),
-                  ),
-                ),
+                            _controller.setIdType(value);
+                          },
+                        ),
+                      ),
+                    )),
                 const SizedBox(height: 24),
-                _buildUploadCard(
-                  title: 'Front of ID',
-                  selectedFile: _controller.frontIdFile,
-                  isLoading: _controller.isPickingFront,
-                  onTap: _pickFrontId,
-                ),
+                Obx(() => _buildUploadCard(
+                      title: 'Front of ID',
+                      selectedFile: _controller.frontIdFile,
+                      isLoading: _controller.isPickingFront,
+                      onTap: _pickFrontId,
+                    )),
                 const SizedBox(height: 24),
-                _buildUploadCard(
-                  title: 'Back of ID',
-                  selectedFile: _controller.backIdFile,
-                  isLoading: _controller.isPickingBack,
-                  onTap: _pickBackId,
-                ),
+                Obx(() => _buildUploadCard(
+                      title: 'Back of ID',
+                      selectedFile: _controller.backIdFile,
+                      isLoading: _controller.isPickingBack,
+                      onTap: _pickBackId,
+                    )),
                 const SizedBox(height: 24),
                 const Text(
                   'Your data is encrypted and only used for identity verification purposes.',
@@ -304,13 +303,9 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
                         return;
                       }
 
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SelfieVerificationScreen(
-                              flowController: _flowController),
-                        ),
-                      );
+                      Get.to(() => SelfieVerificationScreen(
+                            flowController: _flowController,
+                          ));
                     },
                     child: const Text(
                       'Continue',

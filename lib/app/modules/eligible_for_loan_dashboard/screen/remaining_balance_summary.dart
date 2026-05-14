@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_balance_card_model.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/transaction_model.dart';
+import 'package:get/get.dart';
 
 class PaymentPinnedPage extends StatefulWidget {
   const PaymentPinnedPage({
@@ -50,13 +51,7 @@ class _PaymentPinnedPageState extends State<PaymentPinnedPage> {
           elevation: 0,
         ),
         onPressed: () {
-          // Navigate to payment screen
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RepayLoanScreen(),
-              ),
-            );
+          Get.to(() => const RepayLoanScreen());
         },
         child: const Text(
           'Pay Balance',

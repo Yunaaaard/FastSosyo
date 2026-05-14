@@ -7,6 +7,8 @@ import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/review
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/loan_receipt.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/review_your_loan.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
+import 'package:get/get.dart';
 
 class PayCreditsPage extends StatefulWidget {
   const PayCreditsPage({super.key, required this.order});
@@ -113,9 +115,8 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                     elevation: 0,
                   ),
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) => ReviewLoanPage(
+                    Get.to(
+                      () => ReviewLoanPage(
                           data: ReviewLoanData(
                             monthlyPayment: summaryMonthly,
                             orderedAmount: _parseAmount(widget.order.orderedAmount),
@@ -158,10 +159,8 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                             LoanBalanceService.instance
                                 .addConfirmedLoan(confirmedLoan);
 
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (BuildContext context) =>
-                                    LoanReceiptPage(
+                            Get.to(
+                              () => LoanReceiptPage(
                                   data: LoanReceiptData(
                                     from: 'Daven Reez Nemenzo',
                                     to: 'Fast Sosyo ${widget.order.brandName}',
@@ -171,17 +170,12 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                                     amountSent: totalRepayment,
                                   ),
                                   onBackToHome: (BuildContext context) {
-                                    Navigator.of(context)
-                                        .popUntil((Route<dynamic> route) {
-                                      return route.isFirst;
-                                    });
+                                    Get.until((route) => route.settings.name == Routes.orderLoan || route.isFirst);
                                   },
                                 ),
-                              ),
                             );
                           },
                         ),
-                      ),
                     );
                   },
                   child: const Text(

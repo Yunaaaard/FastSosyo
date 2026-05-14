@@ -3,6 +3,7 @@ import 'package:fast_sosyo/app/modules/get_basic_information/controller/selfie_v
 import 'package:fast_sosyo/app/modules/get_basic_information/screens/about_yourself_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:get/get.dart';
 
 class SelfieVerificationScreen extends StatefulWidget {
   const SelfieVerificationScreen({Key? key, this.flowController})
@@ -23,8 +24,12 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
   @override
   void initState() {
     super.initState();
-    _ownsFlowController = widget.flowController == null;
-    _flowController = widget.flowController ?? BasicInformationFlowController();
+    _ownsFlowController = widget.flowController == null &&
+        !Get.isRegistered<BasicInformationFlowController>();
+    _flowController = widget.flowController ??
+        (Get.isRegistered<BasicInformationFlowController>()
+            ? Get.find<BasicInformationFlowController>()
+            : BasicInformationFlowController());
     _controller = _flowController.selfieVerificationController;
   }
 
@@ -32,9 +37,6 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
     if (_controller.isCapturing) {
       return;
     }
-
-    setState(() {});
-
     final String? errorMessage = await _controller.captureSelfie();
     if (!mounted) {
       return;
@@ -46,13 +48,12 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
       );
     }
 
-    setState(() {});
   }
 
   @override
   void dispose() {
     if (_ownsFlowController) {
-      _flowController.dispose();
+      _flowController.onClose();
     }
     super.dispose();
   }
@@ -108,84 +109,84 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                Center(
-                  child: DottedBorder(
-                    color: const Color(0xFF2563EB),
-                    strokeWidth: 2,
-                    dashPattern: const [8, 6],
-                    borderType: BorderType.Circle,
-                    radius: const Radius.circular(180),
-                    child: Container(
-                      width: 350,
-                      height: 350,
-                      alignment: Alignment.center,
-                      color: Colors.transparent,
-                      child: ClipOval(
-                        child: Material(
+                Obx(() => Center(
+                      child: DottedBorder(
+                        color: const Color(0xFF2563EB),
+                        strokeWidth: 2,
+                        dashPattern: const [8, 6],
+                        borderType: BorderType.Circle,
+                        radius: const Radius.circular(180),
+                        child: Container(
+                          width: 350,
+                          height: 350,
+                          alignment: Alignment.center,
                           color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _startLivenessCheck,
-                            child: SizedBox(
-                              width: 350,
-                              height: 350,
-                              child: _controller.selfieFile == null
-                                  ? Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        if (_controller.isCapturing)
-                                          const SizedBox(
-                                            width: 40,
-                                            height: 40,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 3,
-                                              color: Color(0xFF2563EB),
+                          child: ClipOval(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _startLivenessCheck,
+                                child: SizedBox(
+                                  width: 350,
+                                  height: 350,
+                                  child: _controller.selfieFile == null
+                                      ? Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            if (_controller.isCapturing)
+                                              const SizedBox(
+                                                width: 40,
+                                                height: 40,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 3,
+                                                  color: Color(0xFF2563EB),
+                                                ),
+                                              )
+                                            else
+                                              const Icon(
+                                                Icons.camera_alt_outlined,
+                                                size: 40,
+                                                color: Color(0xFF2563EB),
+                                              ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              _controller.isCapturing
+                                                  ? 'Opening Camera...'
+                                                  : 'Start Liveness Check',
+                                              style: const TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 20,
+                                                color: Color(0xFF222222),
+                                              ),
                                             ),
-                                          )
-                                        else
-                                          const Icon(
-                                            Icons.camera_alt_outlined,
-                                            size: 40,
-                                            color: Color(0xFF2563EB),
-                                          ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          _controller.isCapturing
-                                              ? 'Opening Camera...'
-                                              : 'Start Liveness Check',
-                                          style: const TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 20,
-                                            color: Color(0xFF222222),
-                                          ),
+                                            const SizedBox(height: 8),
+                                            const Text(
+                                              'Position your face within the frame',
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.w400,
+                                                fontSize: 15,
+                                                color: Color(0xFF8B8B8B),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            Image.file(_controller.selfieFile!,
+                                                fit: BoxFit.cover),
+                                          ],
                                         ),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          'Position your face within the frame',
-                                          style: TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 15,
-                                            color: Color(0xFF8B8B8B),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        Image.file(_controller.selfieFile!,
-                                            fit: BoxFit.cover),
-                                      ],
-                                    ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
+                    )),
                 const SizedBox(height: 24),
               ],
             ),
@@ -197,61 +198,60 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_controller.selfieFile != null)
-              GestureDetector(
-                onTap: _startLivenessCheck,
-                child: const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    'Retake',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF2563EB),
-                    ),
-                  ),
-                ),
-              ),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                onPressed: () {
-                  if (!_controller.canContinue) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text('Please complete selfie verification first.'),
+            Obx(() => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_controller.selfieFile != null)
+                      GestureDetector(
+                        onTap: _startLivenessCheck,
+                        child: const Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Retake',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        ),
                       ),
-                    );
-                    return;
-                  }
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (!_controller.canContinue) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Please complete selfie verification first.'),
+                              ),
+                            );
+                            return;
+                          }
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AboutYourselfPage(flowController: _flowController),
+                                  Get.to(() => AboutYourselfPage(flowController: _flowController));
+                        },
+                        child: const Text(
+                          'Continue',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                },
-                child: const Text(
-                  'Continue',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+                  ],
+                )),
           ],
         ),
       ),

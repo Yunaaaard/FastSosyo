@@ -1,29 +1,11 @@
-import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/screens/pay_with_sosyo_transaction.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/controller/pay_sosyo_credits_controller.dart';
+import 'package:get/get.dart';
 
-class PaySosyoCreditsScreen extends StatefulWidget {
+class PaySosyoCreditsScreen extends GetView<PaySosyoCreditsController> {
   const PaySosyoCreditsScreen({super.key});
-
-  @override
-  State<PaySosyoCreditsScreen> createState() => _PaySosyoCreditsScreenState();
-}
-
-class _PaySosyoCreditsScreenState extends State<PaySosyoCreditsScreen> {
-  late final PaySosyoCreditsController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = PaySosyoCreditsController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +17,7 @@ class _PaySosyoCreditsScreenState extends State<PaySosyoCreditsScreen> {
           children: [
             Expanded(
               child: Form(
-                key: _controller.formKey,
+                key: controller.formKey,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                   child: Column(
@@ -80,41 +62,45 @@ class _PaySosyoCreditsScreenState extends State<PaySosyoCreditsScreen> {
                         ),
                       ),
                       const SizedBox(height: 26),
-                      _buildDropdownField(
-                        label: 'Principal',
-                        value: _controller.principal.isEmpty
-                            ? null
-                            : _controller.principal,
-                        hintText: 'Select principal',
-                        options: _controller.principalOptions,
-                        onChanged: _controller.setPrincipal,
-                        validator: (String? value) {
-                          if ((value ?? '').isEmpty) {
-                            return 'Principal is required';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => _buildDropdownField(
+                          label: 'Principal',
+                          value: controller.principal.isEmpty
+                              ? null
+                              : controller.principal,
+                          hintText: 'Select principal',
+                          options: controller.principalOptions,
+                          onChanged: controller.setPrincipal,
+                          validator: (String? value) {
+                            if ((value ?? '').isEmpty) {
+                              return 'Principal is required';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
                       const SizedBox(height: 18),
-                      _buildDropdownField(
-                        label: 'Distributor',
-                        value: _controller.distributor.isEmpty
-                            ? null
-                            : _controller.distributor,
-                        hintText: 'Select distributor',
-                        options: _controller.distributorOptions,
-                        onChanged: _controller.setDistributor,
-                        validator: (String? value) {
-                          if ((value ?? '').isEmpty) {
-                            return 'Distributor is required';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => _buildDropdownField(
+                          label: 'Distributor',
+                          value: controller.distributor.isEmpty
+                              ? null
+                              : controller.distributor,
+                          hintText: 'Select distributor',
+                          options: controller.distributorOptions,
+                          onChanged: controller.setDistributor,
+                          validator: (String? value) {
+                            if ((value ?? '').isEmpty) {
+                              return 'Distributor is required';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
                       const SizedBox(height: 18),
                       _buildTextField(
                         label: 'Salesman Name',
-                        controller: _controller.salesmanNameController,
+                        controller: controller.salesmanNameController,
                         hintText: 'Enter salesman name',
                         inputFormatters: <TextInputFormatter>[
                           FilteringTextInputFormatter.allow(
@@ -131,7 +117,7 @@ class _PaySosyoCreditsScreenState extends State<PaySosyoCreditsScreen> {
                       const SizedBox(height: 18),
                       _buildTextField(
                         label: 'Receipt Number',
-                        controller: _controller.receiptNumberController,
+                        controller: controller.receiptNumberController,
                         hintText: 'Enter receipt number',
                         keyboardType: TextInputType.number,
                         inputFormatters: <TextInputFormatter>[
@@ -149,7 +135,7 @@ class _PaySosyoCreditsScreenState extends State<PaySosyoCreditsScreen> {
                       const SizedBox(height: 18),
                       _buildTextField(
                         label: 'Address',
-                        controller: _controller.addressController,
+                        controller: controller.addressController,
                         hintText:
                             'Enter your full street address, apartment\nnumber, city, and state',
                         maxLines: 4,
@@ -183,18 +169,13 @@ class _PaySosyoCreditsScreenState extends State<PaySosyoCreditsScreen> {
               elevation: 0,
             ),
             onPressed: () {
-              if (!_controller.validate()) {
+              if (!controller.validate()) {
                 return;
               }
 
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) {
-                    return PayWithSosyoTransactionScreen(
-                      importantDetails: _controller.model,
-                    );
-                  },
-                ),
+              Get.toNamed(
+                Routes.paySosyoTransaction,
+                arguments: controller.model,
               );
             },
             child: const Text(
@@ -271,7 +252,6 @@ class _PaySosyoCreditsScreenState extends State<PaySosyoCreditsScreen> {
           onChanged: (String? newValue) {
             if (newValue != null) {
               onChanged(newValue);
-              setState(() {});
             }
           },
           validator: validator,

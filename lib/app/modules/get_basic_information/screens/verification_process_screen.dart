@@ -1,7 +1,8 @@
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:async';
-import '../../success_eligibility/screens/loan_success_screen.dart';
+import 'package:get/get.dart';
 
 class VerifyPerson extends StatefulWidget {
   const VerifyPerson({super.key, required this.userFullName});
@@ -24,12 +25,9 @@ class _VerifyPersonState extends State<VerifyPerson>
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_seconds == 1) {
         timer.cancel();
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => LoanSuccessfulPage(
-              userFullName: widget.userFullName,
-            ),
-          ),
+        Get.offNamed(
+          Routes.loanSuccess,
+          arguments: widget.userFullName,
         );
       } else {
         setState(() {

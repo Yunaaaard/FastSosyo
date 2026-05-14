@@ -1,6 +1,7 @@
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../get_basic_information/screens/upload_id_screen.dart';
+import 'package:get/get.dart';
 
 class CheckEligibilityPage extends StatefulWidget {
   const CheckEligibilityPage({Key? key}) : super(key: key);
@@ -168,12 +169,7 @@ class _CheckEligibilityPageState extends State<CheckEligibilityPage>
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const UploadIDScreen(),
-                              ),
-                            );
+                            Get.toNamed(Routes.basicUploadId);
                           },
                           child: const Text(
                             'Check My Eligibility',

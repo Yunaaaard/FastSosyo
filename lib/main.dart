@@ -1,10 +1,7 @@
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/loan_receipt.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/order_loan_dashboard.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/review_your_loan.dart';
-import 'package:fast_sosyo/app/modules/landing_page/landing_screen.dart';
-import 'package:fast_sosyo/app/modules/register_number_page/register_number_screen.dart';
+import 'package:fast_sosyo/app/routes/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,17 +14,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Fast Sosyo',
       theme: ThemeData(
         fontFamily: 'Poppins',
       ),
-      home: const OrderLoanScreen(),
-      // home: const Landingscreen(),
-      // routes: {
-      //   '/RegisterNumber': (context) => const RegisterNumberPage(),
-      // },
+      initialRoute: AppPages.initial,
+      getPages: AppPages.routes,
     );
   }
 }

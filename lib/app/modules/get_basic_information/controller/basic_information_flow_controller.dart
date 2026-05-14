@@ -7,8 +7,9 @@ import 'package:fast_sosyo/app/modules/get_basic_information/models/basic_inform
 import 'package:fast_sosyo/app/modules/get_basic_information/models/employment_income_model.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/models/selfie_verification_model.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/models/upload_id_model.dart';
+import 'package:get/get.dart';
 
-class BasicInformationFlowController {
+class BasicInformationFlowController extends GetxController {
   BasicInformationFlowController({BasicInformationFlowModel? initialModel})
       : uploadIdController = UploadIdController(
           initialModel: initialModel?.uploadId,
@@ -65,10 +66,12 @@ class BasicInformationFlowController {
         isEmploymentComplete;
   }
 
-  void dispose() {
+  @override
+  void onClose() {
     uploadIdController.dispose();
     selfieVerificationController.dispose();
     aboutYourselfController.dispose();
     employmentIncomeController.dispose();
+    super.onClose();
   }
 }

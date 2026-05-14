@@ -1,4 +1,6 @@
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Landingscreen extends StatefulWidget {
   const Landingscreen({super.key});
@@ -34,7 +36,7 @@ class _LandingscreenState extends State<Landingscreen> with TickerProviderStateM
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(seconds: 7), () {
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/RegisterNumber');
+          Get.offNamed(Routes.registerNumber);
         }
       });
     });

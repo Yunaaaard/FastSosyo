@@ -1,10 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
 
-class LoanOrderController extends ChangeNotifier {
+class LoanOrderController extends GetxController {
   LoanOrderController();
 
-  int _selectedTopTab = 0;
+  final RxInt _selectedTopTab = 0.obs;
+  final LoanBalanceService balanceService = LoanBalanceService.instance;
 
   static const List<LoanOrderCardModel> _sampleOrders = <LoanOrderCardModel>[
     LoanOrderCardModel(
@@ -54,18 +56,38 @@ class LoanOrderController extends ChangeNotifier {
     ),
   ];
 
-  int get selectedTopTab => _selectedTopTab;
+  int get selectedTopTab => _selectedTopTab.value;
 
-  bool get isOrdersTabSelected => _selectedTopTab == 0;
+  bool get isOrdersTabSelected => _selectedTopTab.value == 0;
 
   List<LoanOrderCardModel> get sampleOrders => _sampleOrders;
 
+  @override
+  void onInit() {
+    super.onInit();
+    balanceService.addListener(_onBalanceChanged);
+  }
+
   void selectTopTab(int index) {
-    if (_selectedTopTab == index) {
+    if (_selectedTopTab.value == index) {
       return;
     }
 
-    _selectedTopTab = index;
-    notifyListeners();
+    _selectedTopTab.value = index;
+    update();
+  }
+
+  void _onBalanceChanged() {
+    final int? requestedTab = balanceService.consumeRequestedTopTab();
+    if (requestedTab != null) {
+      _selectedTopTab.value = requestedTab;
+    }
+    update();
+  }
+
+  @override
+  void onClose() {
+    balanceService.removeListener(_onBalanceChanged);
+    super.onClose();
   }
 }

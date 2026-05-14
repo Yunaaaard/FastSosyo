@@ -10,6 +10,8 @@ import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/review
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
 import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/controller/pay_with_sosyo_transaction_controller.dart';
 import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/models/pay_sosyo_credits_flow_model.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
+import 'package:get/get.dart';
 
 // ─── Currency Formatter ───────────────────────────────────────────────────────
 // Strips non-digits, removes leading zeros, inserts commas every 3 digits.
@@ -59,7 +61,8 @@ class _CurrencyInputFormatter extends TextInputFormatter {
 
 // ─── Screen ──────────────────────────────────────────────────────────────────
 
-class PayWithSosyoTransactionScreen extends StatefulWidget {
+class PayWithSosyoTransactionScreen
+    extends GetView<PayWithSosyoTransactionController> {
   const PayWithSosyoTransactionScreen({
     super.key,
     required this.importantDetails,
@@ -67,54 +70,10 @@ class PayWithSosyoTransactionScreen extends StatefulWidget {
 
   final PaySosyoCreditsFlowModel importantDetails;
 
-  @override
-  State<PayWithSosyoTransactionScreen> createState() =>
-      _PayWithSosyoTransactionScreenState();
-}
-
-class _PayWithSosyoTransactionScreenState
-    extends State<PayWithSosyoTransactionScreen> {
-  late final PayWithSosyoTransactionController _controller;
-  late final LoanBalanceService _balanceService;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = PayWithSosyoTransactionController();
-    _balanceService = LoanBalanceService.instance;
-
-    _controller.amountFocusNode.addListener(() {
-      // Clear placeholder zero when the user taps the field.
-      if (_controller.amountFocusNode.hasFocus &&
-          _controller.amountController.text == '0') {
-        _controller.amountController.clear();
-      }
-      // Restore placeholder zero when the user leaves without entering a value.
-      if (!_controller.amountFocusNode.hasFocus &&
-          _controller.amountController.text.isEmpty) {
-        _controller.amountController.text = '0';
-      }
-      if (mounted) setState(() {});
-    });
-
-    _controller.amountController.addListener(() {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  LoanBalanceService get _balanceService => LoanBalanceService.instance;
 
   @override
   Widget build(BuildContext context) {
-    final double topMonthly = _controller.topMonthly;
-    final double totalRepayment = _controller.totalRepayment;
-    final double summaryMonthly = _controller.summaryMonthly;
-
     return Scaffold(
       backgroundColor: const Color(0xFFD9E2EE),
       appBar: _appBar(),
@@ -167,9 +126,9 @@ class _PayWithSosyoTransactionScreenState
                       ],
                     ),
                     const SizedBox(height: 14),
-                    _buildMonthlyDateCard(),
+                    Obx(() => _buildMonthlyDateCard()),
                     const SizedBox(height: 14),
-                    _buildMonthlyPaymentCard(topMonthly),
+                    Obx(() => _buildMonthlyPaymentCard(controller.topMonthly)),
                     const SizedBox(height: 16),
                     const Text(
                       'PAYMENT SUMMARY',
@@ -180,7 +139,12 @@ class _PayWithSosyoTransactionScreenState
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildSummaryCard(totalRepayment, summaryMonthly),
+                    Obx(
+                      () => _buildSummaryCard(
+                        controller.totalRepayment,
+                        controller.summaryMonthly,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -199,7 +163,7 @@ class _PayWithSosyoTransactionScreenState
                     elevation: 0,
                   ),
                   onPressed: () {
-                    if (!_controller.hasValidOrderedAmount) {
+                    if (!controller.hasValidOrderedAmount) {
                       ScaffoldMessenger.of(context)
                         ..hideCurrentSnackBar()
                         ..showSnackBar(
@@ -212,23 +176,21 @@ class _PayWithSosyoTransactionScreenState
                       return;
                     }
 
-                    final double orderedAmount = _controller.orderedAmount;
+                    final double orderedAmount = controller.orderedAmount;
                     final double calculatedProcessingFee =
-                        _controller.processingFee;
+                        controller.processingFee;
                     final double calculatedTotalRepayment =
-                        _controller.totalRepayment;
+                        controller.totalRepayment;
                     final List<ReviewRepaymentScheduleItem> schedule =
                         _buildRepaymentScheduleItems();
 
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) => ReviewLoanPage(
+                    Get.to(() => ReviewLoanPage(
                           data: ReviewLoanData(
-                            monthlyPayment: summaryMonthly,
+                            monthlyPayment: controller.summaryMonthly,
                             orderedAmount: orderedAmount,
                             interestRate: '1.69%',
                             repaymentTerm:
-                                '${_controller.selectedTermMonths} Months',
+                                '${controller.selectedTermMonths.value} Months',
                             processingFee: calculatedProcessingFee,
                             documentationCharges: 45.00,
                             totalRepayment: calculatedTotalRepayment,
@@ -241,25 +203,22 @@ class _PayWithSosyoTransactionScreenState
                             _balanceService.addConfirmedLoan(
                               LoanBalanceCardModel(
                                 brandName:
-                                    '${widget.importantDetails.distributor.trim()} ${widget.importantDetails.principal.trim()}',
+                                    '${importantDetails.distributor.trim()} ${importantDetails.principal.trim()}',
                                 dateOrdered:
                                     DateFormat('MMM dd, yyyy').format(now),
                                 timeString: DateFormat('hh:mm a').format(now),
                                 orderID: referenceNo,
-                                firstInstallment: topMonthly,
-                                fullyPaid: totalRepayment,
-                                balance: totalRepayment,
+                                firstInstallment: controller.topMonthly,
+                                fullyPaid: controller.totalRepayment,
+                                balance: controller.totalRepayment,
                               ),
                             );
 
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (BuildContext context) =>
-                                    LoanReceiptPage(
+                                Get.to(() => LoanReceiptPage(
                                   data: LoanReceiptData(
-                                    from: widget.importantDetails.salesmanName
+                                    from: importantDetails.salesmanName
                                         .trim(),
-                                    to: 'Fast Sosyo ${widget.importantDetails.distributor.trim()}',
+                                    to: 'Fast Sosyo ${importantDetails.distributor.trim()}',
                                     referenceNo: referenceNo,
                                     dateTime: DateFormat(
                                       'MMM dd, yyyy | hh:mm a',
@@ -267,18 +226,11 @@ class _PayWithSosyoTransactionScreenState
                                     amountSent: orderedAmount,
                                   ),
                                   onBackToHome: (BuildContext context) {
-                                    Navigator.of(context)
-                                        .popUntil((Route<dynamic> route) {
-                                      return route.isFirst;
-                                    });
+                                    Get.until((route) => route.settings.name == Routes.orderLoan || route.isFirst);
                                   },
-                                ),
-                              ),
-                            );
+                                ));
                           },
-                        ),
-                      ),
-                    );
+                        ));
                   },
                   child: const Text(
                     'Confirm and Continue',
@@ -316,164 +268,163 @@ class _PayWithSosyoTransactionScreenState
   // ─── Improved Order Amount Card ─────────────────────────────────────────────
 
   Widget _buildOrderAmountCard() {
-    final bool isFocused = _controller.amountFocusNode.hasFocus;
-
     return GestureDetector(
       // Tap anywhere on the card to focus the hidden field
-      onTap: () => _controller.amountFocusNode.requestFocus(),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
-        decoration: BoxDecoration(
-          color: const Color(0xFF3F78D8),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color:
-                isFocused ? Colors.white.withOpacity(0.6) : Colors.transparent,
-            width: 2,
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromARGB(20, 20, 39, 69),
-              blurRadius: 16,
-              offset: Offset(0, 5),
+      onTap: () => controller.amountFocusNode.requestFocus(),
+      child: Obx(() => AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3F78D8),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: controller.isFocused.value
+                    ? Colors.white.withOpacity(0.6)
+                    : Colors.transparent,
+                width: 2,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromARGB(20, 20, 39, 69),
+                  blurRadius: 16,
+                  offset: Offset(0, 5),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
               children: [
-                const Text(
-                  'INPUT ORDER AMOUNT',
-                  style: TextStyle(
-                    color: Color(0xFFE8F0FF),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'INPUT ORDER AMOUNT',
+                      style: TextStyle(
+                        color: Color(0xFFE8F0FF),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: double.infinity,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: controller.isFocused.value
+                        ? const Color(0xFF5585D4)
+                        : const Color(0xFF6A96DB),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  alignment: Alignment.center,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // ── Visible display row ──
+                      LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          return SizedBox(
+                            width: constraints.maxWidth - 20,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    '₱ ',
+                                    style: TextStyle(
+                                      color: Color(0xFFF2F7FF),
+                                      fontSize: 46,
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: 'Arial',
+                                      height: 1,
+                                    ),
+                                  ),
+                                  Obx(() => Text(
+                                        controller.displayText.value,
+                                        style: const TextStyle(
+                                          color: Color(0xFFF2F7FF),
+                                          fontSize: 46,
+                                          fontWeight: FontWeight.w700,
+                                          fontFamily: 'Poppins',
+                                          height: 1,
+                                        ),
+                                      )),
+                                  if (controller.isFocused.value) _BlinkingCursor(),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      // ── Invisible TextField captures input ──
+                      Opacity(
+                        opacity: 0,
+                        child: TextField(
+                          controller: controller.amountController,
+                          focusNode: controller.amountFocusNode,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [_CurrencyInputFormatter()],
+                          style: const TextStyle(fontSize: 1),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            isCollapsed: true,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: double.infinity,
-              height: 100,
-              decoration: BoxDecoration(
-                color: isFocused
-                    ? const Color(0xFF5585D4)
-                    : const Color(0xFF6A96DB),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              alignment: Alignment.center,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // ── Visible display row ──
-                  LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return SizedBox(
-                        width: constraints.maxWidth - 20,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '₱ ',
-                                style: TextStyle(
-                                  color: Color(0xFFF2F7FF),
-                                  fontSize: 46,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: 'Arial',
-                                  height: 1,
-                                ),
-                              ),
-                              Text(
-                                _controller.amountController.text.isEmpty
-                                    ? '0'
-                                    : _controller.amountController.text,
-                                style: const TextStyle(
-                                  color: Color(0xFFF2F7FF),
-                                  fontSize: 46,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: 'Poppins',
-                                  height: 1,
-                                ),
-                              ),
-                              if (isFocused) _BlinkingCursor(),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  // ── Invisible TextField captures input ──
-                  Opacity(
-                    opacity: 0,
-                    child: TextField(
-                      controller: _controller.amountController,
-                      focusNode: _controller.amountFocusNode,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [_CurrencyInputFormatter()],
-                      style: const TextStyle(fontSize: 1),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isCollapsed: true,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          )),
     );
   }
 
   // ─── Rest of the widgets (unchanged) ────────────────────────────────────────
 
   Widget _buildTermChip(int months) {
-    final bool selected = _controller.selectedTermMonths == months;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _controller.setSelectedTerm(months)),
-        child: Container(
-          height: 70,
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF3F78D8) : const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '$months',
-                style: TextStyle(
-                  color: selected ? Colors.white : const Color(0xFF111827),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+        onTap: () => controller.setSelectedTerm(months),
+        child: Obx(() {
+          final bool selected = controller.selectedTermMonths.value == months;
+          return Container(
+            height: 70,
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFF3F78D8) : const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '$months',
+                  style: TextStyle(
+                    color: selected ? Colors.white : const Color(0xFF111827),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'MONTHS',
-                style: TextStyle(
-                  color: selected ? Colors.white : const Color(0xFF6B7280),
-                  letterSpacing: 1.2,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 2),
+                Text(
+                  'MONTHS',
+                  style: TextStyle(
+                    color: selected ? Colors.white : const Color(0xFF6B7280),
+                    letterSpacing: 1.2,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
@@ -513,7 +464,7 @@ class _PayWithSosyoTransactionScreenState
             ),
             alignment: Alignment.center,
             child: Text(
-              'Day 15 of the month (${_controller.selectedTermMonths} installments)',
+              'Day 15 of the month (${controller.selectedTermMonths.value} installments)',
               style: const TextStyle(
                 color: Color(0xFF4B5563),
                 fontSize: 16,
@@ -596,7 +547,7 @@ class _PayWithSosyoTransactionScreenState
           _buildSummaryRow(
             'Ordered Amount',
             _buildPesoText(
-              amount: _controller.orderedAmount,
+              amount: controller.orderedAmount,
               color: const Color(0xFF2E3137),
               fontSize: 18,
               weight: FontWeight.w700,
@@ -606,7 +557,7 @@ class _PayWithSosyoTransactionScreenState
           _buildSummaryRow(
             'Interest Rate (1.69%)',
             _buildPesoText(
-              amount: _controller.interestFee,
+              amount: controller.interestFee,
               color: const Color(0xFF2E3137),
               fontSize: 18,
               weight: FontWeight.w700,
@@ -616,7 +567,7 @@ class _PayWithSosyoTransactionScreenState
           _buildSummaryRow(
             'Repayment Term',
             Text(
-              '${_controller.selectedTermMonths} Months',
+              '${controller.selectedTermMonths.value} Months',
               style: const TextStyle(
                 color: Color(0xFF2E3137),
                 fontSize: 18,
@@ -628,7 +579,7 @@ class _PayWithSosyoTransactionScreenState
           _buildSummaryRow(
             'Processing Fee (2.5%)',
             _buildPesoText(
-              amount: _controller.processingFee,
+              amount: controller.processingFee,
               color: const Color(0xFF2E3137),
               fontSize: 18,
               weight: FontWeight.w700,
@@ -650,7 +601,7 @@ class _PayWithSosyoTransactionScreenState
           _buildSummaryRow(
             'Monthly Payment',
             _buildPesoText(
-              amount: _controller.monthlyPayment,
+              amount: controller.monthlyPayment,
               color: const Color(0xFF2E3137),
               fontSize: 21,
               weight: FontWeight.w700,
@@ -729,9 +680,9 @@ class _PayWithSosyoTransactionScreenState
   }
 
   List<ReviewRepaymentScheduleItem> _buildRepaymentScheduleItems() {
-    final int term = _controller.selectedTermMonths;
-    final double total = _controller.totalRepayment;
-    final double monthly = _controller.monthlyPayment;
+    final int term = controller.selectedTermMonths.value;
+    final double total = controller.totalRepayment;
+    final double monthly = controller.monthlyPayment;
     final DateFormat formatter = DateFormat('MMMM dd, yyyy');
 
     final List<ReviewRepaymentScheduleItem> schedule =

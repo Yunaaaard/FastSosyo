@@ -1,5 +1,6 @@
-import 'package:fast_sosyo/app/modules/dashboard_page/screen/dashboard_screen.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class OtpVerificationPage extends StatefulWidget {
@@ -122,11 +123,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       if (widget.onVerified != null) {
         await widget.onVerified!(context, otp);
       } else {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => DashboardPage(),
-          ),
-        );
+        Get.toNamed(Routes.dashboard);
       }
     } finally {
       if (mounted) {

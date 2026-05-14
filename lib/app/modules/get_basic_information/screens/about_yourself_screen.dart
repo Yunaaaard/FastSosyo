@@ -3,6 +3,7 @@ import 'package:fast_sosyo/app/modules/get_basic_information/controller/basic_in
 import 'package:fast_sosyo/app/modules/get_basic_information/screens/employment_income_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class AboutYourselfPage extends StatefulWidget {
   const AboutYourselfPage({Key? key, this.flowController}) : super(key: key);
@@ -18,36 +19,22 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
   late final AboutYourselfController _controller;
   late final bool _ownsFlowController;
 
-  void _onFormChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _ownsFlowController = widget.flowController == null;
-    _flowController = widget.flowController ?? BasicInformationFlowController();
+    _ownsFlowController = widget.flowController == null &&
+        !Get.isRegistered<BasicInformationFlowController>();
+    _flowController = widget.flowController ??
+        (Get.isRegistered<BasicInformationFlowController>()
+            ? Get.find<BasicInformationFlowController>()
+            : BasicInformationFlowController());
     _controller = _flowController.aboutYourselfController;
-
-    _controller.nameController.addListener(_onFormChanged);
-    _controller.emailController.addListener(_onFormChanged);
-    _controller.dobController.addListener(_onFormChanged);
-    _controller.addressController.addListener(_onFormChanged);
-    _controller.partnerController.addListener(_onFormChanged);
   }
 
   @override
   void dispose() {
-    _controller.nameController.removeListener(_onFormChanged);
-    _controller.emailController.removeListener(_onFormChanged);
-    _controller.dobController.removeListener(_onFormChanged);
-    _controller.addressController.removeListener(_onFormChanged);
-    _controller.partnerController.removeListener(_onFormChanged);
-
     if (_ownsFlowController) {
-      _flowController.dispose();
+      _flowController.onClose();
     }
     super.dispose();
   }
@@ -124,17 +111,22 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                   const SizedBox(height: 18),
                   _buildLabel('Status', required: true),
                   _buildStatusDropdown(),
-                  if (_controller.status == 'Married') ...[
-                    const SizedBox(height: 18),
-                    _buildLabel('Partner Name', required: true),
-                    _buildTextField(_controller.partnerController,
-                      'Enter partner name',
-                      TextInputType.name,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
-                      ],
-                    ),
-                  ],
+                  Obx(() => _controller.status == 'Married'
+                      ? Column(
+                          children: [
+                            const SizedBox(height: 18),
+                            _buildLabel('Partner Name', required: true),
+                            _buildTextField(_controller.partnerController,
+                              'Enter partner name',
+                              TextInputType.name,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                              ],
+                            ),
+                          ],
+                        )
+                      : const SizedBox.shrink()),
+                  
                   const SizedBox(height: 18),
                   _buildLabel('Gender'),
                   _buildGenderSelector(),
@@ -156,44 +148,44 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                  Obx(() {
+                    // reference refreshTrigger so this Obx rebuilds when fields change
+                    _controller.refreshTrigger.value;
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
-                      ),
-                      onPressed: !_controller.canSubmit
-                          ? null
-                          : () {
-                              if (!(_controller.formKey.currentState
-                                      ?.validate() ??
-                                  false)) {
-                                return;
-                              }
+                        onPressed: !_controller.canSubmit
+                            ? null
+                            : () {
+                                if (!(_controller.formKey.currentState
+                                        ?.validate() ??
+                                    false)) {
+                                  return;
+                                }
 
-                              _controller.syncModelFromInputs();
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => EmploymentIncomePage(
-                                    flowController: _flowController,
-                                  ),
-                                ),
-                              );
-                            },
-                      child: const Text(
-                        'Done',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 20,
-                          color: Colors.white,
+                                _controller.syncModelFromInputs();
+                                Get.to(() => EmploymentIncomePage(
+                                      flowController: _flowController,
+                                    ));
+                              },
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 32),
                 ],
               ),

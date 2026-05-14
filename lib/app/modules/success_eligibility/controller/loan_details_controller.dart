@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:fast_sosyo/app/modules/success_eligibility/models/loan_breakdown_item_model.dart';
 import 'package:fast_sosyo/app/modules/success_eligibility/models/loan_offer_model.dart';
 
-class LoanDetailsController extends ChangeNotifier {
+class LoanDetailsController extends GetxController {
   LoanDetailsController({required this.userFullName});
 
   final String userFullName;
 
-  bool _contractSigned = false;
-  String? _generatedAgreementPath;
+  final RxBool _contractSigned = false.obs;
+  final Rx<String?> _generatedAgreementPath = Rx<String?>(null);
 
   final LoanOfferModel loanOffer = const LoanOfferModel(
     maximumLoanLimit: 25000,
@@ -42,8 +43,8 @@ class LoanDetailsController extends ChangeNotifier {
     ),
   ];
 
-  bool get contractSigned => _contractSigned;
-  String? get generatedAgreementPath => _generatedAgreementPath;
+  bool get contractSigned => _contractSigned.value;
+  String? get generatedAgreementPath => _generatedAgreementPath.value;
 
   String get resolvedUserFullName {
     final String fullName = userFullName.trim();
@@ -51,8 +52,7 @@ class LoanDetailsController extends ChangeNotifier {
   }
 
   void setAgreementGenerated(String path) {
-    _contractSigned = true;
-    _generatedAgreementPath = path;
-    notifyListeners();
+    _contractSigned.value = true;
+    _generatedAgreementPath.value = path;
   }
 }

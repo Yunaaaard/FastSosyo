@@ -1,6 +1,7 @@
 
-import 'package:fast_sosyo/app/modules/otp_verification/screens/otp_verification_screen.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class RegisterNumberPage extends StatefulWidget {
@@ -158,11 +159,7 @@ class _RegisterNumberPageState extends State<RegisterNumberPage> {
                                 ),
                               ),
                               onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const OtpVerificationPage(),
-                                  ),
-                                );
+                                Get.toNamed(Routes.otpVerification);
                               },
                               child: const Text(
                                 'Send Code',

@@ -1,8 +1,9 @@
-import 'package:fast_sosyo/app/modules/success_eligibility/screens/loan_details_screen.dart';
 import 'package:fast_sosyo/app/modules/success_eligibility/models/loan_success_content_model.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:confetti/confetti.dart';
+import 'package:get/get.dart';
 
 class LoanSuccessfulPage extends StatefulWidget {
   const LoanSuccessfulPage({super.key, required this.userFullName});
@@ -233,14 +234,11 @@ class _LoanSuccessfulPageState extends State<LoanSuccessfulPage> {
                         padding: const EdgeInsets.symmetric(vertical: 18),
                       ),
                       onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => LoanDetailsScreen(
-                                      userFullName: widget.userFullName,
-                                    ),
-                                  ),
-                                );
-                              },
+                        Get.toNamed(
+                          Routes.loanDetails,
+                          arguments: widget.userFullName,
+                        );
+                      },
                       child: Text(
                         _content.proceedButtonLabel,
                         style: TextStyle(

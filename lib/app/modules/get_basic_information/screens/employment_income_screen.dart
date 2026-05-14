@@ -3,6 +3,7 @@ import 'package:fast_sosyo/app/modules/get_basic_information/controller/basic_in
 import 'package:fast_sosyo/app/modules/get_basic_information/screens/verification_process_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class EmploymentIncomePage extends StatefulWidget {
   const EmploymentIncomePage({Key? key, this.flowController}) : super(key: key);
@@ -17,31 +18,22 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
   late final BasicInformationFlowController _flowController;
   late final EmploymentIncomeController _controller;
   late final bool _ownsFlowController;
-
-  void _onFormChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _ownsFlowController = widget.flowController == null;
-    _flowController = widget.flowController ?? BasicInformationFlowController();
+    _ownsFlowController = widget.flowController == null &&
+        !Get.isRegistered<BasicInformationFlowController>();
+    _flowController = widget.flowController ??
+        (Get.isRegistered<BasicInformationFlowController>()
+            ? Get.find<BasicInformationFlowController>()
+            : BasicInformationFlowController());
     _controller = _flowController.employmentIncomeController;
-
-    _controller.sourceController.addListener(_onFormChanged);
-    _controller.incomeController.addListener(_onFormChanged);
   }
 
   @override
   void dispose() {
-    _controller.sourceController.removeListener(_onFormChanged);
-    _controller.incomeController.removeListener(_onFormChanged);
-
     if (_ownsFlowController) {
-      _flowController.dispose();
+      _flowController.onClose();
     }
     super.dispose();
   }
@@ -192,45 +184,44 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                  Obx(() {
+                    _controller.refreshTrigger.value;
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
-                      ),
-                      onPressed: !_controller.canSubmit
-                          ? null
-                          : () {
-                              if (!(_controller.formKey.currentState
-                                      ?.validate() ??
-                                  false)) {
-                                return;
-                              }
+                        onPressed: !_controller.canSubmit
+                            ? null
+                            : () {
+                                if (!(_controller.formKey.currentState
+                                        ?.validate() ??
+                                    false)) {
+                                  return;
+                                }
 
-                              _controller.syncModelFromInputs();
-                              final flowModel = _flowController.buildFlowModel();
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => VerifyPerson(
-                                    userFullName: flowModel.aboutYourself.fullName,
-                                  ),
-                                ),
-                              );
-                            },
-                      child: const Text(
-                        'Done',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 20,
-                          color: Colors.white,
+                                _controller.syncModelFromInputs();
+                                final flowModel = _flowController.buildFlowModel();
+                                Get.to(() => VerifyPerson(
+                                      userFullName: flowModel.aboutYourself.fullName,
+                                    ));
+                              },
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 32),
                 ],
               ),

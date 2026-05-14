@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'package:fast_sosyo/app/modules/check_eligibility/check_eligibility_screen.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import '../models/brand_category.dart';
 import '../models/dashboard_stats.dart';
 import '../controllers/dashboard_controller.dart';
@@ -15,57 +16,7 @@ class DashboardPage extends StatefulWidget {
 
 
 class _DashboardPageState extends State<DashboardPage> {
-  final DataController dataController = DataController(
-    brandCategories: const [
-      // Sample data for brand categories
-      BrandCategory(
-        brand: 'Nestle',
-        image: 'assets/images/z.png',
-        logo: 'assets/images/nestle-sample-logo.png',
-        amount: '₱ 3,000.00',
-        count: '12',
-      ),
-      BrandCategory(
-        brand: 'Coffee',
-        image: 'assets/images/x.png',
-        logo: 'assets/images/monde-sample-logo.png',
-        amount: '₱ 8,540.75',
-        count: '37',
-      ),
-      BrandCategory(
-        brand: 'Milk',
-        image: 'assets/images/z.png',
-        logo: 'assets/images/nestle-sample-logo.png',
-        amount: '₱ 1,240.00',
-        count: '9',
-      ),
-      BrandCategory(
-        brand: 'Snacks',
-        image: 'assets/images/meow_ad.png',
-        logo: 'assets/images/nestle-sample-logo.png',
-        amount: '₱ 12,430.20',
-        count: '54',
-      ),
-      BrandCategory(
-        brand: 'Beverages',
-        image: 'assets/images/x.png',
-        logo: 'assets/images/monde-sample-logo.png',
-        amount: '₱ 6,980.10',
-        count: '28',
-      ),
-      BrandCategory(
-        brand: 'Essentials',
-        image: 'assets/images/z.png',
-        logo: 'assets/images/nestle-sample-logo.png',
-        amount: '₱ 2,150.50',
-        count: '14',
-      ),
-    ],
-    dashboardStats: const DashboardStats(
-      totalOrderedValue: '0.00',
-      totalProducts: '0 SKU’s',
-    ),
-  );
+  late final DataController dataController;
 
   // Advertisement images for carousel (separate from brand categories)
   final List<String> _adImages = [
@@ -84,6 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
+    dataController = Get.find<DataController>();
     brandCategories = dataController.brandCategories;
     stats = dataController.dashboardStats;
     _carouselTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
@@ -193,7 +145,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Expanded(
                     flex: 4,
                     child: Container(
-                      height: 90,
+                      constraints: const BoxConstraints(minHeight: 90),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
@@ -257,70 +209,51 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  // Sosyo Loan Card with SVG Icon (Clickable)
-                  StatefulBuilder(
-                    builder: (context, setLocalState) {
-                      bool isPressed = false;
-                      return Listener(
-                        onPointerDown: (_) => setLocalState(() => isPressed = true),
-                        onPointerUp: (_) => setLocalState(() => isPressed = false),
-                        onPointerCancel: (_) => setLocalState(() => isPressed = false),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
-                          splashColor: const Color(0xFF1A3D8A).withOpacity(0.2),
-                          highlightColor: const Color(0xFF1A3D8A).withOpacity(0.1),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const CheckEligibilityPage(),
-                              ),
-                            );
-                          },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Blue button — icon only
-                              Container(
-                                height: 65,
-                                width: 65,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF275DCE),
-                                  borderRadius: BorderRadius.circular(10),
-                                  boxShadow: isPressed
-                                      ? []
-                                      : const [
-                                          BoxShadow(
-                                            color: Color(0xFF1A3D8A),
-                                            blurRadius: 0,
-                                            spreadRadius: 0,
-                                            offset: Offset(3, 2),
-                                          ),
-                                        ],
-                                ),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/icons/SosyoLoanButtonIcon.svg',
-                                    height: 28,
-                                    width: 28,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 6), // spacing between button and label
-                              // Label below the button
-                              const Text(
-                                'Sosyo Loan',
-                                style: TextStyle(
-                                  color: Color(0xFF275DCE),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                  const SizedBox(width: 12),                  // Sosyo Loan Card with SVG Icon (Clickable)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    splashColor: const Color(0xFF1A3D8A).withOpacity(0.2),
+                    highlightColor: const Color(0xFF1A3D8A).withOpacity(0.1),
+                    onTap: () {
+                      Get.toNamed(Routes.checkEligibility);
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          height: 65,
+                          width: 65,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF275DCE),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0xFF1A3D8A),
+                                blurRadius: 0,
+                                spreadRadius: 0,
+                                offset: Offset(3, 2),
                               ),
                             ],
                           ),
+                          child: Center(
+                            child: SvgPicture.asset(
+                              'assets/icons/SosyoLoanButtonIcon.svg',
+                              height: 28,
+                              width: 28,
+                            ),
+                          ),
                         ),
-                      );
-                    },
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Sosyo Loan',
+                          style: TextStyle(
+                            color: Color(0xFF275DCE),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

@@ -1,12 +1,11 @@
-import 'dart:typed_data';
-
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/order_loan_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fast_sosyo/app/modules/otp_verification/screens/otp_verification_screen.dart';
 import 'package:fast_sosyo/app/modules/success_eligibility/constants/loan_agreement_content.dart';
 import 'package:fast_sosyo/app/modules/success_eligibility/controller/loan_details_controller.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:fast_sosyo/data/services/loan_agreement_service.dart';
+import 'package:get/get.dart';
 import 'package:signature/signature.dart';
 
 class LoanDetailsScreen extends StatefulWidget {
@@ -19,22 +18,15 @@ class LoanDetailsScreen extends StatefulWidget {
 }
 
 class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
-  LoanDetailsController? _controller;
+  late final LoanDetailsController _controller;
   final LoanAgreementService _agreementService = LoanAgreementService();
 
-  LoanDetailsController get _controllerRef =>
-      _controller ??= LoanDetailsController(userFullName: widget.userFullName);
+  LoanDetailsController get _controllerRef => _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller ??= LoanDetailsController(userFullName: widget.userFullName);
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
+    _controller = Get.find<LoanDetailsController>();
   }
 
   @override
@@ -172,24 +164,133 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                         ),
                         child: Column(
                           children: [
-                            for (int i = 0;
-                                i < controller.breakdownItems.length;
-                                i++) ...[
-                              _buildBreakdownRow(
-                                controller.breakdownItems[i].label,
-                                controller.breakdownItems[i].value,
-                                isBold: controller.breakdownItems[i].isBold,
-                                hasPeso: controller.breakdownItems[i].hasPeso,
-                                valueColor:
-                                    controller.breakdownItems[i].valueColor,
+                            Column(
+                              children: [
+                                for (int i = 0;
+                                    i < controller.breakdownItems.length;
+                                    i++) ...[
+                                  _buildBreakdownRow(
+                                    controller.breakdownItems[i].label,
+                                    controller.breakdownItems[i].value,
+                                    isBold: controller.breakdownItems[i].isBold,
+                                    hasPeso: controller.breakdownItems[i].hasPeso,
+                                    valueColor:
+                                        controller.breakdownItems[i].valueColor,
+                                  ),
+                                  if (i == controller.breakdownItems.length - 2)
+                                    const Divider(
+                                        height: 16, color: Color(0xFFF0F0F0))
+                                  else if (i !=
+                                      controller.breakdownItems.length - 1)
+                                    const SizedBox(height: 16),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            if (!controller.contractSigned)
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: OutlinedButton.icon(
+                                  onPressed: _openContractModal,
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFF2563EB)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.edit_note, color: Color(0xFF2563EB)),
+                                  label: const Text(
+                                    'Review & Sign Contract',
+                                    style: TextStyle(
+                                      color: Color(0xFF2563EB),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFDCFCE7),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.check,
+                                          size: 15,
+                                          color: Color(0xFF15803D),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Expanded(
+                                        child: Text(
+                                          'Agreement saved',
+                                          style: TextStyle(
+                                            color: Color(0xFF166534),
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFDCFCE7),
+                                          borderRadius: BorderRadius.circular(999),
+                                        ),
+                                        child: const Text(
+                                          'Ready',
+                                          style: TextStyle(
+                                            color: Color(0xFF166534),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'File',
+                                    style: TextStyle(
+                                      color: Color(0xFF166534),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _agreementService.extractFileName(
+                                      controller.generatedAgreementPath!,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Color(0xFF14532D),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Saved in ${_agreementService.extractDirectoryLabel(controller.generatedAgreementPath!)}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF166534),
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              if (i == controller.breakdownItems.length - 2)
-                                const Divider(
-                                    height: 16, color: Color(0xFFF0F0F0))
-                              else if (i !=
-                                  controller.breakdownItems.length - 1)
-                                const SizedBox(height: 16),
-                            ],
                           ],
                         ),
                       ),
@@ -199,147 +300,10 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'DIGITAL CONTRACT',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black54,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: OutlinedButton.icon(
-                          onPressed: _openContractModal,
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF2563EB)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          icon: const Icon(
-                            Icons.description_outlined,
-                            color: Color(0xFF2563EB),
-                            size: 18,
-                          ),
-                          label: const Text(
-                            'Review Contract',
-                            style: TextStyle(
-                              color: Color(0xFF2563EB),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (controller.generatedAgreementPath != null) ...[
-                        const SizedBox(height: 10),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDF4),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFBBF7D0)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFDCFCE7),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.check,
-                                      size: 15,
-                                      color: Color(0xFF15803D),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    child: Text(
-                                      'Agreement saved',
-                                      style: TextStyle(
-                                        color: Color(0xFF166534),
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFDCFCE7),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    child: const Text(
-                                      'Ready',
-                                      style: TextStyle(
-                                        color: Color(0xFF166534),
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'File',
-                                style: TextStyle(
-                                  color: Color(0xFF166534),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _agreementService.extractFileName(
-                                  controller.generatedAgreementPath!,
-                                ),
-                                style: const TextStyle(
-                                  color: Color(0xFF14532D),
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Saved in ${_agreementService.extractDirectoryLabel(controller.generatedAgreementPath!)}',
-                                style: const TextStyle(
-                                  color: Color(0xFF166534),
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
                   child: SizedBox(
                     width: double.infinity,
                     height: 52,
-                    child: ElevatedButton(
+                    child: Obx(() => ElevatedButton(
                       onPressed: controller.contractSigned
                           ? _openLoanOtpVerification
                           : null,
@@ -359,21 +323,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                           color: Colors.white,
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18),
-                  child: Text(
-                    'SECURE 256-BIT ENCRYPTED TRANSACTION',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.black38,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.5,
-                    ),
-                    textAlign: TextAlign.center,
+                    )),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -407,10 +357,8 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
       return;
     }
 
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (BuildContext otpContext) {
-          return OtpVerificationPage(
+    await Get.to<void>(
+      () => OtpVerificationPage(
             title: 'Loan OTP Verification',
             recipientLabel: 'your registered mobile number',
             continueLabel: 'Verify & Continue',
@@ -423,28 +371,20 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                 return;
               }
 
-              await Navigator.of(context).pushReplacement(
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) {
-                    return const OrderLoanScreen();
-                  },
-                ),
-              );
+              await Get.offNamed(Routes.orderLoan);
             },
             onResend: () {
               if (!mounted) {
                 return;
               }
 
-              ScaffoldMessenger.of(otpContext).showSnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('A new OTP has been sent.'),
                 ),
               );
             },
-          );
-        },
-      ),
+          ),
     );
   }
 
@@ -829,10 +769,10 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                                             controller.setAgreementGenerated(
                                                 finalPath);
 
-                                            Navigator.of(
-                                              modalContext,
-                                              rootNavigator: true,
-                                            ).pop<String>(finalPath);
+                                            Get.back<String>(
+                                              result: finalPath,
+                                              closeOverlays: true,
+                                            );
                                           }
                                         : null,
                                     style: ElevatedButton.styleFrom(
@@ -902,7 +842,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop();
+                  Get.back<void>();
                 },
                 child: const Text('OK'),
               ),

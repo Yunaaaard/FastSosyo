@@ -1,6 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class RepayLoanScreen extends StatelessWidget {
   const RepayLoanScreen({super.key});
@@ -88,9 +87,7 @@ class RepayLoanScreen extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          Navigator.of(context).popUntil((Route<dynamic> route) {
-                            return route.isFirst;
-                          });
+                          Get.until((route) => route.isFirst);
                         },
                         child: const Text(
                           'Back to Home',

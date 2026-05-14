@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/controller/loan_order_controller.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_balance_card_model.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
@@ -7,53 +9,16 @@ import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/transa
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/widgets/loan_order_status_chip.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/pay_with_credits.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/remaining_balance_summary.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
-import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/screens/pay_sosyo_credits.dart';
 
-class OrderLoanScreen extends StatefulWidget {
+class OrderLoanScreen extends GetView<LoanOrderController> {
   const OrderLoanScreen({super.key});
 
   @override
-  State<OrderLoanScreen> createState() => _OrderLoanScreenState();
-}
-
-class _OrderLoanScreenState extends State<OrderLoanScreen> {
-  late final LoanOrderController _controller;
-  late final LoanBalanceService _balanceService;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = LoanOrderController();
-    _balanceService = LoanBalanceService.instance;
-    _balanceService.addListener(_onBalanceChanged);
-  }
-
-  @override
-  void dispose() {
-    _balanceService.removeListener(_onBalanceChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onBalanceChanged() {
-    final int? requestedTab = _balanceService.consumeRequestedTopTab();
-    if (requestedTab != null) {
-      _controller.selectTopTab(requestedTab);
-    }
-
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (BuildContext context, Widget? child) {
+    return GetBuilder<LoanOrderController>(
+      builder: (controller) {
         final List<LoanBalanceCardModel> balances =
-            _balanceService.confirmedBalances;
+            controller.balanceService.confirmedBalances;
         final List<TransactionModel> recentTransactions =
             TransactionModel.getSampleTransactions();
 
@@ -123,13 +88,7 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                                     ),
                                   ),
                                   onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (BuildContext context) {
-                                          return const PaySosyoCreditsScreen();
-                                        },
-                                      ),
-                                    );
+                                    Get.toNamed(Routes.paySosyoCredits);
                                   },
                                   child: const Text(
                                     'Pay with Sosyo Credits',
@@ -185,11 +144,11 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                _controller.selectTopTab(0);
+                                controller.selectTopTab(0);
                               },
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: _controller.selectedTopTab == 0
+                                  color: controller.selectedTopTab == 0
                                       ? const Color(0xFF2F60C8)
                                       : Colors.white,
                                   border: const Border(
@@ -203,7 +162,7 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                                 child: Text(
                                   'FAST SOSYO ORDERS',
                                   style: TextStyle(
-                                    color: _controller.selectedTopTab == 0
+                                    color: controller.selectedTopTab == 0
                                         ? Colors.white
                                         : const Color(0xFF5F646B),
                                     fontWeight: FontWeight.w700,
@@ -217,17 +176,17 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                _controller.selectTopTab(1);
+                                controller.selectTopTab(1);
                               },
                               child: Container(
-                                color: _controller.selectedTopTab == 1
+                                color: controller.selectedTopTab == 1
                                     ? const Color(0xFF2F60C8)
                                     : Colors.white,
                                 alignment: Alignment.center,
                                 child: Text(
                                   'FAST SOSYO BALANCE',
                                   style: TextStyle(
-                                    color: _controller.selectedTopTab == 1
+                                    color: controller.selectedTopTab == 1
                                         ? Colors.white
                                         : const Color(0xFF5F646B),
                                     fontWeight: FontWeight.w700,
@@ -244,12 +203,12 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                   ),
                 ),
                 Expanded(
-                  child: _controller.isOrdersTabSelected
+                  child: controller.isOrdersTabSelected
                       ? ListView(
                           padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
                           children: [
                             for (final LoanOrderCardModel order
-                                in _controller.sampleOrders) ...[
+                                in controller.sampleOrders) ...[
                               _buildOrderCard(order),
                               const SizedBox(height: 14),
                             ],
@@ -392,13 +351,7 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
               const SizedBox(width: 10),
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) {
-                        return PayCreditsPage(order: order);
-                      },
-                    ),
-                  );
+                  Get.to(() => PayCreditsPage(order: order));
                 },
                 child: Container(
                   width: 145,
@@ -572,7 +525,7 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
         ),
       ),
       onDismissed: (direction) {
-        _balanceService.removeConfirmedLoan(loan.orderID);
+        controller.balanceService.removeConfirmedLoan(loan.orderID);
       },
       child: Container(
         padding: const EdgeInsets.all(18),
@@ -706,14 +659,8 @@ class _OrderLoanScreenState extends State<OrderLoanScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext context) {
-                          return PaymentPinnedPage(balance: loan);
-                        },
-                      ),
-                    );
+                onTap: () {
+                    Get.to(() => PaymentPinnedPage(balance: loan));
                   },
                   child: Container(
                     width: 170,
