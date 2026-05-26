@@ -2,11 +2,17 @@ import 'package:fast_sosyo/app/modules/check_eligibility/check_eligibility_scree
 import 'package:fast_sosyo/app/modules/dashboard_page/bindings/dashboard_binding.dart';
 import 'package:fast_sosyo/app/modules/dashboard_page/screen/dashboard_screen.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/bindings/loan_order_binding.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/bindings/pay_credits_binding.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/bindings/scan_success_binding.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/order_loan_dashboard.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/pay_with_credits.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/scan_success_screen.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/bindings/basic_information_binding.dart';
 import 'package:fast_sosyo/app/modules/get_basic_information/screens/upload_id_screen.dart';
 import 'package:fast_sosyo/app/modules/landing_page/landing_screen.dart';
+import 'package:fast_sosyo/app/modules/otp_verification/bindings/otp_verification_binding.dart';
 import 'package:fast_sosyo/app/modules/otp_verification/screens/otp_verification_screen.dart';
+import 'package:fast_sosyo/app/modules/register_number_page/bindings/register_number_binding.dart';
 import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/bindings/pay_sosyo_credits_binding.dart';
 import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/models/pay_sosyo_credits_flow_model.dart';
 import 'package:fast_sosyo/app/modules/pay_with_sosyo_credits/screens/pay_sosyo_credits.dart';
@@ -29,10 +35,17 @@ class AppPages {
     GetPage(
       name: Routes.registerNumber,
       page: () => const RegisterNumberPage(),
+      binding: RegisterNumberBinding(),
     ),
     GetPage( 
       name: Routes.otpVerification,
-      page: () => const OtpVerificationPage(),
+      page: () {
+        final args = Get.arguments;
+        return OtpVerificationPage(
+          recipientLabel: args is String ? args : '+93 9453482113',
+        );
+      },
+      binding: OtpVerificationBinding(),
     ),
     GetPage(
       name: Routes.dashboard,
@@ -77,6 +90,11 @@ class AppPages {
       binding: LoanOrderBinding(),
     ),
     GetPage(
+      name: Routes.payCredits,
+      page: () => const PayCreditsPage(),
+      binding: PayCreditsBinding(),
+    ),
+    GetPage(
       name: Routes.loanDetails,
       page: () => LoanDetailsScreen(
         userFullName: (Get.arguments as String?) ?? '',
@@ -88,6 +106,11 @@ class AppPages {
       page: () => LoanSuccessfulPage(
         userFullName: (Get.arguments as String?) ?? '',
       ),
+    ),
+    GetPage(
+      name: Routes.scanSuccess,
+      page: () => const ScanSuccessPage(),
+      binding: ScanSuccessBinding(),
     ),
   ];
 }

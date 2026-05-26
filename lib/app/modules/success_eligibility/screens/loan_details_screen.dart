@@ -8,30 +8,15 @@ import 'package:fast_sosyo/data/services/loan_agreement_service.dart';
 import 'package:get/get.dart';
 import 'package:signature/signature.dart';
 
-class LoanDetailsScreen extends StatefulWidget {
-  const LoanDetailsScreen({super.key, required this.userFullName});
+class LoanDetailsScreen extends GetView<LoanDetailsController> {
+  LoanDetailsScreen({super.key, required this.userFullName});
 
   final String userFullName;
-
-  @override
-  State<LoanDetailsScreen> createState() => _LoanDetailsScreenState();
-}
-
-class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
-  late final LoanDetailsController _controller;
   final LoanAgreementService _agreementService = LoanAgreementService();
-
-  LoanDetailsController get _controllerRef => _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<LoanDetailsController>();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final LoanDetailsController controller = _controllerRef;
+    final LoanDetailsController controller = this.controller;
 
     return AnimatedBuilder(
       animation: controller,
@@ -192,7 +177,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                                 width: double.infinity,
                                 height: 48,
                                 child: OutlinedButton.icon(
-                                  onPressed: _openContractModal,
+                                  onPressed: () => _openContractModal(context),
                                   style: OutlinedButton.styleFrom(
                                     side: const BorderSide(color: Color(0xFF2563EB)),
                                     shape: RoundedRectangleBorder(
@@ -305,7 +290,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                     height: 52,
                     child: Obx(() => ElevatedButton(
                       onPressed: controller.contractSigned
-                          ? _openLoanOtpVerification
+                          ? () => _openLoanOtpVerification(context)
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB),
@@ -352,8 +337,8 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
     );
   }
 
-  Future<void> _openLoanOtpVerification() async {
-    if (!mounted) {
+  Future<void> _openLoanOtpVerification(BuildContext context) async {
+    if (!context.mounted) {
       return;
     }
 
@@ -367,14 +352,14 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
               return otp.length == 6;
             },
             onVerified: (BuildContext context, String otp) async {
-              if (!mounted) {
+              if (!context.mounted) {
                 return;
               }
 
               await Get.offNamed(Routes.orderLoan);
             },
             onResend: () {
-              if (!mounted) {
+              if (!context.mounted) {
                 return;
               }
 
@@ -451,9 +436,8 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
     );
   }
 
-  Future<void> _openContractModal() async {
-    final LoanDetailsController controller = _controllerRef;
-    final BuildContext screenContext = context;
+  Future<void> _openContractModal(BuildContext context) async {
+    final LoanDetailsController controller = this.controller;
     final SignatureController signatureController = SignatureController(
       penStrokeWidth: 2.5,
       penColor: Colors.black,
@@ -808,13 +792,13 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
         },
       );
 
-      if (!mounted || generatedPath == null) {
+      if (!context.mounted || generatedPath == null) {
         return;
       }
 
       await Future<void>.delayed(const Duration(milliseconds: 250));
 
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
 
@@ -823,7 +807,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
           _agreementService.isAndroidDownloadsPath(resolvedPath);
 
       await showDialog<void>(
-        context: screenContext,
+        context: context,
         useRootNavigator: true,
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
@@ -851,9 +835,9 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
         },
       );
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
-      ScaffoldMessenger.of(screenContext).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             inDownloads

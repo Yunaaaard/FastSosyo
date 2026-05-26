@@ -1,28 +1,17 @@
 
 import 'package:fast_sosyo/app/routes/app_routes.dart';
+import 'package:fast_sosyo/app/modules/register_number_page/controller/register_number_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class RegisterNumberPage extends StatefulWidget {
+class RegisterNumberPage extends StatelessWidget {
   const RegisterNumberPage({super.key});
 
   @override
-  State<RegisterNumberPage> createState() => _RegisterNumberPageState();
-}
-
-class _RegisterNumberPageState extends State<RegisterNumberPage> {
-  final TextEditingController _phoneController = TextEditingController();
-  final String _countryCode = '+63';
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final RegisterNumberController controller = Get.find<RegisterNumberController>();
+
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
@@ -103,7 +92,7 @@ class _RegisterNumberPageState extends State<RegisterNumberPage> {
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    Text(_countryCode, style: const TextStyle(fontSize: 16)),
+                                    Text(RegisterNumberController.countryCode, style: const TextStyle(fontSize: 16)),
                                     const Icon(Icons.arrow_drop_down),
                                   ],
                                 ),
@@ -119,7 +108,7 @@ class _RegisterNumberPageState extends State<RegisterNumberPage> {
                                     border: Border.all(color: Colors.grey.shade300, width: 1.5),
                                   ),
                                   child: TextField(
-                                    controller: _phoneController,
+                                    controller: controller.phoneController,
                                     keyboardType: TextInputType.phone,
                                     decoration: const InputDecoration(
                                       border: InputBorder.none,
@@ -148,25 +137,33 @@ class _RegisterNumberPageState extends State<RegisterNumberPage> {
                         // Send Code button
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF275DCE),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                          child: Obx(() {
+                            controller.refreshTrigger.value;
+                            return SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF275DCE),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                onPressed: controller.canSendCode
+                                    ? () {
+                                        Get.toNamed(
+                                          Routes.otpVerification,
+                                          arguments: controller.fullPhoneNumber,
+                                        );
+                                      }
+                                    : null,
+                                child: const Text(
+                                  'Send Code',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
                                 ),
                               ),
-                              onPressed: () {
-                                Get.toNamed(Routes.otpVerification);
-                              },
-                              child: const Text(
-                                'Send Code',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
-                              ),
-                            ),
-                          ),
+                            );
+                          }),
                         ),
                       ],
                     ),

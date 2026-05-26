@@ -5,41 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class EmploymentIncomePage extends StatefulWidget {
-  const EmploymentIncomePage({Key? key, this.flowController}) : super(key: key);
-
-  final BasicInformationFlowController? flowController;
-
-  @override
-  State<EmploymentIncomePage> createState() => _EmploymentIncomePageState();
-}
-
-class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
-  late final BasicInformationFlowController _flowController;
-  late final EmploymentIncomeController _controller;
-  late final bool _ownsFlowController;
-  @override
-  void initState() {
-    super.initState();
-    _ownsFlowController = widget.flowController == null &&
-        !Get.isRegistered<BasicInformationFlowController>();
-    _flowController = widget.flowController ??
-        (Get.isRegistered<BasicInformationFlowController>()
-            ? Get.find<BasicInformationFlowController>()
-            : BasicInformationFlowController());
-    _controller = _flowController.employmentIncomeController;
-  }
-
-  @override
-  void dispose() {
-    if (_ownsFlowController) {
-      _flowController.onClose();
-    }
-    super.dispose();
-  }
+class EmploymentIncomePage extends GetView<BasicInformationFlowController> {
+  const EmploymentIncomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final EmploymentIncomeController incomeController = controller.employmentIncomeController;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6FAFF),
       appBar: _appBar(),
@@ -48,7 +20,7 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
-              key: _controller.formKey,
+              key: incomeController.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -93,7 +65,7 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                   const SizedBox(height: 24),
                   _buildLabel('Source of Income', required: true),
                   _buildTextField(
-                    _controller.sourceController,
+                    incomeController.sourceController,
                     'Your business',
                     TextInputType.text,
                     required: true,
@@ -138,7 +110,7 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                     ],
                   ),
                   _buildTextField(
-                    _controller.incomeController,
+                    incomeController.incomeController,
                     ' ',
                     TextInputType.number,
                     required: true,
@@ -147,7 +119,7 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                   const SizedBox(height: 18),
                   _buildLabel('Income Tax'),
                   _buildTextField(
-                    _controller.taxController,
+                    incomeController.taxController,
                     ' ',
                     TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -155,7 +127,7 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                   const SizedBox(height: 18),
                   _buildLabel('Employer Name'),
                   _buildTextField(
-                    _controller.employerController,
+                    incomeController.employerController,
                     'Enter name',
                     TextInputType.text,
                     inputFormatters: [
@@ -165,13 +137,13 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                   const SizedBox(height: 18),
                   _buildLabel('Years of Employment'),
                   _buildTextField(
-                    _controller.yearsController,
+                    incomeController.yearsController,
                     ' ',
                     TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                   const SizedBox(height: 20),
-                  _buildConsentCheckbox(),
+                  Obx(() => _buildConsentCheckbox(incomeController)),
                   const SizedBox(height: 24),
                   const Text(
                     'Your data is encrypted and only used for identity verification purposes.',
@@ -185,7 +157,8 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                   ),
                   const SizedBox(height: 32),
                   Obx(() {
-                    _controller.refreshTrigger.value;
+                    incomeController.refreshTrigger.value;
+                    incomeController.personalDataConsentAcceptedRx.value;
                     return SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -196,17 +169,17 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        onPressed: !_controller.canSubmit
+                        onPressed: !incomeController.canSubmit
                             ? null
                             : () {
-                                if (!(_controller.formKey.currentState
+                                if (!(incomeController.formKey.currentState
                                         ?.validate() ??
                                     false)) {
                                   return;
                                 }
 
-                                _controller.syncModelFromInputs();
-                                final flowModel = _flowController.buildFlowModel();
+                                incomeController.syncModelFromInputs();
+                                final flowModel = controller.buildFlowModel();
                                 Get.to(() => VerifyPerson(
                                       userFullName: flowModel.aboutYourself.fullName,
                                     ));
@@ -315,7 +288,7 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
     );
   }
 
-  Widget _buildConsentCheckbox() {
+  Widget _buildConsentCheckbox(EmploymentIncomeController incomeController) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -323,11 +296,9 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
           width: 24,
           height: 24,
           child: Checkbox(
-            value: _controller.personalDataConsentAccepted,
+            value: incomeController.personalDataConsentAccepted,
             onChanged: (value) {
-              setState(() {
-                _controller.setPersonalDataConsentAccepted(value ?? false);
-              });
+              incomeController.setPersonalDataConsentAccepted(value ?? false);
             },
             side: const BorderSide(
               color: Color(0xFFDDDDDD),
@@ -342,11 +313,9 @@ class _EmploymentIncomePageState extends State<EmploymentIncomePage> {
         Expanded(
           child: GestureDetector(
             onTap: () {
-              setState(() {
-                _controller.setPersonalDataConsentAccepted(
-                  !_controller.personalDataConsentAccepted,
-                );
-              });
+              incomeController.setPersonalDataConsentAccepted(
+                !incomeController.personalDataConsentAccepted,
+              );
             },
             child: const Text.rich(
               TextSpan(

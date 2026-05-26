@@ -7,8 +7,8 @@ import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_b
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/loan_order_card_model.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/transaction_model.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/widgets/loan_order_status_chip.dart';
-import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/pay_with_credits.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/remaining_balance_summary.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/scanner_screen.dart';
 
 class OrderLoanScreen extends GetView<LoanOrderController> {
   const OrderLoanScreen({super.key});
@@ -103,21 +103,26 @@ class OrderLoanScreen extends GetView<LoanOrderController> {
                               ),
                             ),
                             const SizedBox(width: 14),
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFFFFF),
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  child: SvgPicture.asset(
-                                    'assets/icons/loan-order-button-icon.svg',
-                                    width: 12,
-                                    height: 12,
+                            GestureDetector(
+                              onTap: () {
+                                Get.to(() => const ScannerPage());
+                              },
+                              child: Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFFFFF),
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: Center(
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
+                                    child: SvgPicture.asset(
+                                      'assets/icons/Scanner.svg',
+                                      width: 12,
+                                      height: 12,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -351,7 +356,7 @@ class OrderLoanScreen extends GetView<LoanOrderController> {
               const SizedBox(width: 10),
               GestureDetector(
                 onTap: () {
-                  Get.to(() => PayCreditsPage(order: order));
+                  Get.toNamed(Routes.payCredits, arguments: order);
                 },
                 child: Container(
                   width: 145,

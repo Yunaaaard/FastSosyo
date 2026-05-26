@@ -5,42 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class AboutYourselfPage extends StatefulWidget {
-  const AboutYourselfPage({Key? key, this.flowController}) : super(key: key);
-
-  final BasicInformationFlowController? flowController;
-
-  @override
-  State<AboutYourselfPage> createState() => _AboutYourselfPageState();
-}
-
-class _AboutYourselfPageState extends State<AboutYourselfPage> {
-  late final BasicInformationFlowController _flowController;
-  late final AboutYourselfController _controller;
-  late final bool _ownsFlowController;
-
-  @override
-  void initState() {
-    super.initState();
-    _ownsFlowController = widget.flowController == null &&
-        !Get.isRegistered<BasicInformationFlowController>();
-    _flowController = widget.flowController ??
-        (Get.isRegistered<BasicInformationFlowController>()
-            ? Get.find<BasicInformationFlowController>()
-            : BasicInformationFlowController());
-    _controller = _flowController.aboutYourselfController;
-  }
-
-  @override
-  void dispose() {
-    if (_ownsFlowController) {
-      _flowController.onClose();
-    }
-    super.dispose();
-  }
+class AboutYourselfPage extends GetView<BasicInformationFlowController> {
+  const AboutYourselfPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AboutYourselfController aboutController = controller.aboutYourselfController;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6FAFF),
       appBar: _appBar(),
@@ -49,7 +20,7 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
-              key: _controller.formKey,
+              key: aboutController.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -94,49 +65,68 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                   const SizedBox(height: 24),
                   _buildLabel('Full Name', required: true),
                   _buildTextField(
-                    _controller.nameController,
+                    aboutController.nameController,
                     ' ',
                     TextInputType.name,
+                    aboutController: aboutController,
                     inputFormatters: [
                       FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
                     ],
                   ),
                   const SizedBox(height: 18),
                   _buildLabel('Email Address', required: true),
-                  _buildTextField(_controller.emailController,
-                      'example@email.com', TextInputType.emailAddress),
+                      _buildTextField(
+                        aboutController.emailController,
+                        'example@email.com',
+                        TextInputType.emailAddress,
+                        aboutController: aboutController),
                   const SizedBox(height: 18),
                   _buildLabel('Date of Birth', required: true),
-                  _buildDateField(context),
+                  Obx(() {
+                    aboutController.refreshTrigger.value;
+                    return _buildDateField(context, aboutController);
+                  }),
                   const SizedBox(height: 18),
                   _buildLabel('Status', required: true),
-                  _buildStatusDropdown(),
-                  Obx(() => _controller.status == 'Married'
-                      ? Column(
-                          children: [
-                            const SizedBox(height: 18),
-                            _buildLabel('Partner Name', required: true),
-                            _buildTextField(_controller.partnerController,
-                              'Enter partner name',
-                              TextInputType.name,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
-                              ],
-                            ),
-                          ],
-                        )
-                      : const SizedBox.shrink()),
+                  Obx(() {
+                    aboutController.refreshTrigger.value;
+                    return _buildStatusDropdown(aboutController);
+                  }),
+                  Obx(() {
+                    aboutController.refreshTrigger.value;
+                    return aboutController.status == 'Married'
+                        ? Column(
+                            children: [
+                              const SizedBox(height: 18),
+                              _buildLabel('Partner Name', required: true),
+                              _buildTextField(
+                                aboutController.partnerController,
+                                'Enter partner name',
+                                TextInputType.name,
+                                aboutController: aboutController,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                                ],
+                              ),
+                            ],
+                          )
+                        : const SizedBox.shrink();
+                  }),
                   
                   const SizedBox(height: 18),
                   _buildLabel('Gender'),
-                  _buildGenderSelector(),
+                  Obx(() {
+                    aboutController.refreshTrigger.value;
+                    return _buildGenderSelector(aboutController);
+                  }),
                   const SizedBox(height: 18),
                   _buildLabel('Permanent Address', required: true),
                   _buildTextField(
-                      _controller.addressController,
+                      aboutController.addressController,
                       'Enter your full street address, apartment number, city, and state',
                       TextInputType.streetAddress,
-                      maxLines: 3),
+                      maxLines: 3,
+                      aboutController: aboutController),
                   const SizedBox(height: 24),
                   const Text(
                     'Your data is encrypted and only used for identity verification purposes.',
@@ -149,8 +139,7 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                   ),
                   const SizedBox(height: 32),
                   Obx(() {
-                    // reference refreshTrigger so this Obx rebuilds when fields change
-                    _controller.refreshTrigger.value;
+                    aboutController.refreshTrigger.value;
                     return SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -161,19 +150,17 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        onPressed: !_controller.canSubmit
+                        onPressed: !aboutController.canSubmit
                             ? null
                             : () {
-                                if (!(_controller.formKey.currentState
+                                if (!(aboutController.formKey.currentState
                                         ?.validate() ??
                                     false)) {
                                   return;
                                 }
 
-                                _controller.syncModelFromInputs();
-                                Get.to(() => EmploymentIncomePage(
-                                      flowController: _flowController,
-                                    ));
+                                aboutController.syncModelFromInputs();
+                                Get.to(() => const EmploymentIncomePage());
                               },
                         child: const Text(
                           'Done',
@@ -236,10 +223,12 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller, String hint, TextInputType type,
-      {int maxLines = 1, List<TextInputFormatter>? inputFormatters}) {
+      TextEditingController textController, String hint, TextInputType type,
+      {int maxLines = 1,
+      List<TextInputFormatter>? inputFormatters,
+      required AboutYourselfController aboutController}) {
     return TextFormField(
-      controller: controller,
+      controller: textController,
       keyboardType: type,
       maxLines: maxLines,
       inputFormatters: inputFormatters,
@@ -252,8 +241,10 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
                 'Enter your full street address, apartment number, city, and state' &&
             (value == null || value.isEmpty)) return 'Address is required';
         if (hint == 'Enter partner name' &&
-            _controller.status == 'Married' &&
-            (value == null || value.isEmpty)) return 'Partner Name is required';
+            aboutController.status == 'Married' &&
+            (value == null || value.isEmpty)) {
+          return 'Partner Name is required';
+        }
         return null;
       },
       decoration: InputDecoration(
@@ -280,9 +271,9 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
     );
   }
 
-  Widget _buildDateField(BuildContext context) {
+  Widget _buildDateField(BuildContext context, AboutYourselfController aboutController) {
     return TextFormField(
-      controller: _controller.dobController,
+      controller: aboutController.dobController,
       readOnly: true,
       validator: (value) {
         if (value == null || value.isEmpty) return 'Date of Birth is required';
@@ -296,9 +287,7 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
           lastDate: DateTime.now(),
         );
         if (picked != null) {
-          setState(() {
-            _controller.setDateOfBirth(picked);
-          });
+          aboutController.setDateOfBirth(picked);
         }
       },
       decoration: InputDecoration(
@@ -326,19 +315,17 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
     );
   }
 
-  Widget _buildStatusDropdown() {
+  Widget _buildStatusDropdown(AboutYourselfController aboutController) {
     return DropdownButtonFormField<String>(
-      value: _controller.status,
-      items: _controller.statusOptions.map((status) {
+      value: aboutController.status,
+      items: aboutController.statusOptions.map((status) {
         return DropdownMenuItem<String>(
           value: status,
           child: Text(status, style: const TextStyle(fontFamily: 'Poppins')),
         );
       }).toList(),
       onChanged: (value) {
-        setState(() {
-          _controller.setStatus(value!);
-        });
+        aboutController.setStatus(value!);
       },
       decoration: InputDecoration(
         filled: true,
@@ -361,26 +348,24 @@ class _AboutYourselfPageState extends State<AboutYourselfPage> {
     );
   }
 
-  Widget _buildGenderSelector() {
+  Widget _buildGenderSelector(AboutYourselfController aboutController) {
     return Row(
       children: [
-        _buildGenderButton('Male'),
+        _buildGenderButton(aboutController, 'Male'),
         const SizedBox(width: 12),
-        _buildGenderButton('Female'),
+        _buildGenderButton(aboutController, 'Female'),
         const SizedBox(width: 12),
-        _buildGenderButton('Other'),
+        _buildGenderButton(aboutController, 'Other'),
       ],
     );
   }
 
-  Widget _buildGenderButton(String gender) {
-    final bool selected = _controller.gender == gender;
+  Widget _buildGenderButton(AboutYourselfController aboutController, String gender) {
+    final bool selected = aboutController.gender == gender;
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          setState(() {
-            _controller.setGender(gender);
-          });
+          aboutController.setGender(gender);
         },
         child: Container(
           height: 48,

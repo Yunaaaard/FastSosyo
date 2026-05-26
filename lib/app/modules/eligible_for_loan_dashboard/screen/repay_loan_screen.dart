@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fast_sosyo/app/routes/app_routes.dart';
 
 class RepayLoanScreen extends StatelessWidget {
   const RepayLoanScreen({super.key});
@@ -87,7 +88,7 @@ class RepayLoanScreen extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          Get.until((route) => route.isFirst);
+                          Get.offAllNamed(Routes.orderLoan);
                         },
                         child: const Text(
                           'Back to Home',

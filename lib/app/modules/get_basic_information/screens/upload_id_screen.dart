@@ -6,19 +6,10 @@ import 'package:fast_sosyo/app/modules/get_basic_information/screens/selfie_veri
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class UploadIDScreen extends StatefulWidget {
-  const UploadIDScreen({Key? key, this.flowController}) : super(key: key);
+class UploadIDScreen extends GetView<BasicInformationFlowController> {
+  const UploadIDScreen({super.key});
 
-  final BasicInformationFlowController? flowController;
-
-  @override
-  State<UploadIDScreen> createState() => _UploadIDScreenState();
-}
-
-class _UploadIDScreenState extends State<UploadIDScreen> {
-  late final BasicInformationFlowController _flowController;
-  late final UploadIdController _controller;
-  late final bool _ownsFlowController;
+  UploadIdController get _controller => controller.uploadIdController;
   final List<String> _idTypes = const [
     'National ID',
     'Passport',
@@ -27,21 +18,9 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
     'SSS ID',
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _ownsFlowController = widget.flowController == null &&
-        !Get.isRegistered<BasicInformationFlowController>();
-    _flowController = widget.flowController ??
-        (Get.isRegistered<BasicInformationFlowController>()
-            ? Get.find<BasicInformationFlowController>()
-            : BasicInformationFlowController());
-    _controller = _flowController.uploadIdController;
-  }
-
-  Future<void> _pickFrontId() async {
+  Future<void> _pickFrontId(BuildContext context) async {
     final String? errorMessage = await _controller.pickFrontId();
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
     if (errorMessage != null) {
@@ -51,9 +30,9 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
     }
   }
 
-  Future<void> _pickBackId() async {
+  Future<void> _pickBackId(BuildContext context) async {
     final String? errorMessage = await _controller.pickBackId();
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
     if (errorMessage != null) {
@@ -61,14 +40,6 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
         SnackBar(content: Text(errorMessage)),
       );
     }
-  }
-
-  @override
-  void dispose() {
-    if (_ownsFlowController) {
-      _flowController.onClose();
-    }
-    super.dispose();
   }
 
   Widget _buildUploadCard({
@@ -261,14 +232,14 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
                       title: 'Front of ID',
                       selectedFile: _controller.frontIdFile,
                       isLoading: _controller.isPickingFront,
-                      onTap: _pickFrontId,
+                      onTap: () => _pickFrontId(context),
                     )),
                 const SizedBox(height: 24),
                 Obx(() => _buildUploadCard(
                       title: 'Back of ID',
                       selectedFile: _controller.backIdFile,
                       isLoading: _controller.isPickingBack,
-                      onTap: _pickBackId,
+                      onTap: () => _pickBackId(context),
                     )),
                 const SizedBox(height: 24),
                 const Text(
@@ -303,9 +274,7 @@ class _UploadIDScreenState extends State<UploadIDScreen> {
                         return;
                       }
 
-                      Get.to(() => SelfieVerificationScreen(
-                            flowController: _flowController,
-                          ));
+                          Get.to(() => const SelfieVerificationScreen());
                     },
                     child: const Text(
                       'Continue',

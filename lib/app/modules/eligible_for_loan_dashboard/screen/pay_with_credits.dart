@@ -7,52 +7,25 @@ import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/models/review
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/loan_receipt.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/screen/review_your_loan.dart';
 import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/services/loan_balance_service.dart';
+import 'package:fast_sosyo/app/modules/eligible_for_loan_dashboard/controller/pay_credits_controller.dart';
 import 'package:fast_sosyo/app/routes/app_routes.dart';
 import 'package:get/get.dart';
 
-class PayCreditsPage extends StatefulWidget {
-  const PayCreditsPage({super.key, required this.order});
-
-  final LoanOrderCardModel order;
-
-  @override
-  State<PayCreditsPage> createState() => _PayCreditsPageState();
-}
-
-class _PayCreditsPageState extends State<PayCreditsPage> {
-  int _selectedTermMonths = 3;
-
-  static const Map<int, double> _topMonthlyByTerm = <int, double>{
-    3: 370.00,
-    6: 328.50,
-    12: 307.02,
-  };
-
-  static const Map<int, double> _totalRepaymentByTerm = <int, double>{
-    3: 1834.08,
-    6: 1971.00,
-    12: 2248.24,
-  };
-
-  static const Map<int, double> _summaryMonthlyByTerm = <int, double>{
-    3: 307.02,
-    6: 328.50,
-    12: 187.35,
-  };
+class PayCreditsPage extends GetView<PayCreditsController> {
+  const PayCreditsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final double topMonthly = _topMonthlyByTerm[_selectedTermMonths] ?? 0;
-    final double totalRepayment =
-        _totalRepaymentByTerm[_selectedTermMonths] ?? 0;
-    final double summaryMonthly =
-        _summaryMonthlyByTerm[_selectedTermMonths] ?? 0;
+    return Obx(() {
+      final double topMonthly = controller.topMonthly;
+      final double totalRepayment = controller.totalRepayment;
+      final double summaryMonthly = controller.summaryMonthly;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFD9E2EE),
-      appBar: appBar(),
-      body: SafeArea(
-        child: Column(
+      return Scaffold(
+        backgroundColor: const Color(0xFFD9E2EE),
+        appBar: appBar(),
+        body: SafeArea(
+          child: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
@@ -119,9 +92,9 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                       () => ReviewLoanPage(
                           data: ReviewLoanData(
                             monthlyPayment: summaryMonthly,
-                            orderedAmount: _parseAmount(widget.order.orderedAmount),
+                            orderedAmount: controller.parseAmount(controller.order.orderedAmount),
                             interestRate: '1.69%',
-                            repaymentTerm: '$_selectedTermMonths Months',
+                            repaymentTerm: '${controller.selectedTermMonths.value} Months',
                             processingFee: 250.00,
                             documentationCharges: 45.00,
                             totalRepayment: totalRepayment,
@@ -145,10 +118,10 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                           onConfirm: (BuildContext context) {
                             final LoanBalanceCardModel confirmedLoan =
                                 LoanBalanceCardModel(
-                              brandName: widget.order.brandName,
-                              dateOrdered: widget.order.dateOrdered,
-                              timeString: _formatTimeString(DateTime.now()),
-                              orderID: widget.order.orderId,
+                              brandName: controller.order.brandName,
+                              dateOrdered: controller.order.dateOrdered,
+                              timeString: controller.formatTimeString(DateTime.now()),
+                              orderID: controller.order.orderId,
                               firstInstallment: topMonthly,
                               fullyPaid: totalRepayment,
                               balance: (totalRepayment - topMonthly)
@@ -163,14 +136,14 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                               () => LoanReceiptPage(
                                   data: LoanReceiptData(
                                     from: 'Daven Reez Nemenzo',
-                                    to: 'Fast Sosyo ${widget.order.brandName}',
-                                    referenceNo: widget.order.orderId,
+                                    to: 'Fast Sosyo ${controller.order.brandName}',
+                                    referenceNo: controller.order.orderId,
                                     dateTime:
-                                        '${widget.order.dateOrdered} | ${_formatTimeString(DateTime.now())}',
+                                        '${controller.order.dateOrdered} | ${controller.formatTimeString(DateTime.now())}',
                                     amountSent: totalRepayment,
                                   ),
                                   onBackToHome: (BuildContext context) {
-                                    Get.until((route) => route.settings.name == Routes.orderLoan || route.isFirst);
+                                    Get.offAllNamed(Routes.orderLoan);
                                   },
                                 ),
                             );
@@ -191,8 +164,9 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
             ),
           ],
         ),
-      ),
-    );
+        ),
+      );
+    });
   }
 
   AppBar appBar() {
@@ -238,7 +212,7 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                     ),
                   ],
                 ),
-                child: Image.asset(widget.order.brandLogo, fit: BoxFit.contain),
+                child: Image.asset(controller.order.brandLogo, fit: BoxFit.contain),
               ),
               const SizedBox(width: 14),
               Expanded(child: Container()),
@@ -267,7 +241,7 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                           ),
                         ),
                         TextSpan(
-                          text: widget.order.orderedAmount,
+                          text: controller.order.orderedAmount,
                           style: const TextStyle(
                             color: Color(0xFF2E5DC5),
                             fontSize: 33,
@@ -300,7 +274,7 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${widget.order.productCount} SKU\'s',
+                        '${controller.order.productCount} SKU\'s',
                         style: const TextStyle(
                           color: Color(0xFF5B6068),
                           fontSize: 21,
@@ -327,7 +301,7 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.order.dateOrdered,
+                          controller.order.dateOrdered,
                           style: const TextStyle(
                             color: Color(0xFF5B6068),
                             fontSize: 21,
@@ -347,14 +321,12 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
   }
 
   Widget _buildTermChip(int months) {
-    final bool selected = _selectedTermMonths == months;
+    final bool selected = controller.selectedTermMonths.value == months;
 
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          setState(() {
-            _selectedTermMonths = months;
-          });
+          controller.setSelectedTerm(months);
         },
         child: Container(
           height: 65,
@@ -553,11 +525,11 @@ class _PayCreditsPageState extends State<PayCreditsPage> {
           const SizedBox(height: 10),
           _buildSummaryRow(
             'Ordered Amount',
-            widget.order.orderedAmount,
+            controller.order.orderedAmount,
             isCurrency: true,
           ),
           _buildSummaryRow('Interest Rate', '1.69%'),
-          _buildSummaryRow('Repayment Term', '$_selectedTermMonths Months'),
+          _buildSummaryRow('Repayment Term', '${controller.selectedTermMonths.value} Months'),
           _buildSummaryRow(
             'Processing Fee (2.5%)',
             '250.00',

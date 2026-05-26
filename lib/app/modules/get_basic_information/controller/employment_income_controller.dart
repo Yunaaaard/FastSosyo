@@ -43,6 +43,7 @@ class EmploymentIncomeController extends GetxController {
   TextEditingController get yearsController => _yearsController;
   EmploymentIncomeModel get model => _model.value;
   bool get personalDataConsentAccepted => _personalDataConsentAccepted.value;
+  RxBool get personalDataConsentAcceptedRx => _personalDataConsentAccepted;
   RxInt get refreshTrigger => _refreshTrigger;
   bool get canSubmit {
     final bool hasSourceOfIncome = _sourceController.text.trim().isNotEmpty;

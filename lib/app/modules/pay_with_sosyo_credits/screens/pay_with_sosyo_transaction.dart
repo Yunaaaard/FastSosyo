@@ -226,7 +226,7 @@ class PayWithSosyoTransactionScreen
                                     amountSent: orderedAmount,
                                   ),
                                   onBackToHome: (BuildContext context) {
-                                    Get.until((route) => route.settings.name == Routes.orderLoan || route.isFirst);
+                                    Get.offAllNamed(Routes.orderLoan);
                                   },
                                 ));
                           },

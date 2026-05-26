@@ -5,40 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:get/get.dart';
 
-class SelfieVerificationScreen extends StatefulWidget {
-  const SelfieVerificationScreen({Key? key, this.flowController})
-      : super(key: key);
+class SelfieVerificationScreen extends GetView<BasicInformationFlowController> {
+  const SelfieVerificationScreen({super.key});
 
-  final BasicInformationFlowController? flowController;
+  SelfieVerificationController get _controller => controller.selfieVerificationController;
 
-  @override
-  State<SelfieVerificationScreen> createState() =>
-      _SelfieVerificationScreenState();
-}
-
-class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
-  late final BasicInformationFlowController _flowController;
-  late final SelfieVerificationController _controller;
-  late final bool _ownsFlowController;
-
-  @override
-  void initState() {
-    super.initState();
-    _ownsFlowController = widget.flowController == null &&
-        !Get.isRegistered<BasicInformationFlowController>();
-    _flowController = widget.flowController ??
-        (Get.isRegistered<BasicInformationFlowController>()
-            ? Get.find<BasicInformationFlowController>()
-            : BasicInformationFlowController());
-    _controller = _flowController.selfieVerificationController;
-  }
-
-  Future<void> _startLivenessCheck() async {
+  Future<void> _startLivenessCheck(BuildContext context) async {
     if (_controller.isCapturing) {
       return;
     }
     final String? errorMessage = await _controller.captureSelfie();
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
 
@@ -48,14 +25,6 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
       );
     }
 
-  }
-
-  @override
-  void dispose() {
-    if (_ownsFlowController) {
-      _flowController.onClose();
-    }
-    super.dispose();
   }
 
   @override
@@ -125,7 +94,7 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: _startLivenessCheck,
+                                onTap: () => _startLivenessCheck(context),
                                 child: SizedBox(
                                   width: 350,
                                   height: 350,
@@ -203,7 +172,7 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
                   children: [
                     if (_controller.selfieFile != null)
                       GestureDetector(
-                        onTap: _startLivenessCheck,
+                        onTap: () => _startLivenessCheck(context),
                         child: const Padding(
                           padding: EdgeInsets.only(bottom: 12),
                           child: Text(
@@ -238,7 +207,7 @@ class _SelfieVerificationScreenState extends State<SelfieVerificationScreen> {
                             return;
                           }
 
-                                  Get.to(() => AboutYourselfPage(flowController: _flowController));
+                                  Get.to(() => const AboutYourselfPage());
                         },
                         child: const Text(
                           'Continue',
