@@ -28,9 +28,6 @@ class ScanSuccessPage extends GetView<ScanSuccessController> {
               builder: (context, constraints) {
                 final double width = constraints.maxWidth;
                 final double horizontal = width * 0.06;
-                final ScanSuccessController ctrl = Get.isRegistered<ScanSuccessController>()
-                    ? Get.find<ScanSuccessController>()
-                    : ScanSuccessController(qrData: '');
 
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontal),
@@ -39,7 +36,7 @@ class ScanSuccessPage extends GetView<ScanSuccessController> {
                       Expanded(
                         child: Center(
                           child: SingleChildScrollView(
-                            child: _ReceiptCard(controller: ctrl),
+                            child: _ReceiptCard(controller: controller),
                           ),
                         ),
                       ),
@@ -180,22 +177,26 @@ class _ReceiptCard extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      children: [
-                        _ReceiptInfoRow(label: 'From:', value: controller.from, scale: scale),
-                        SizedBox(height: 10 * scale),
-                        _ReceiptInfoRow(label: 'To:', value: controller.to, scale: scale),
-                        SizedBox(height: 10 * scale),
-                        _ReceiptInfoRow(label: 'Ref No:', value: controller.displayReferenceNo, scale: scale),
-                        SizedBox(height: 10 * scale),
-                        _ReceiptInfoRow(label: 'Date:', value: controller.formattedDateTime, scale: scale),
-                      ],
+                    SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _ReceiptInfoRow(label: 'Loan ID:', value: controller.loanId, scale: scale),
+                          SizedBox(height: 10 * scale),
+                          _ReceiptInfoRow(label: 'Principal:', value: controller.principalTitle, scale: scale),
+                          SizedBox(height: 10 * scale),
+                          _ReceiptInfoRow(label: 'Applied:', value: controller.formattedAppliedDate, scale: scale),
+                          SizedBox(height: 10 * scale),
+                          _ReceiptInfoRow(label: 'Due Date:', value: controller.formattedDueDate, scale: scale),
+                          SizedBox(height: 10 * scale),
+                          _ReceiptInfoRow(label: 'Ref No:', value: controller.displayReferenceNo, scale: scale),
+                          SizedBox(height: 12 * scale),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
                     Column(
                       children: [
                         Text(
-                          'Amount Sent',
+                          'Amount Due',
                           style: TextStyle(
                             color: const Color(0xFF8F9398),
                             fontSize: 15 * scale,
@@ -221,7 +222,7 @@ class _ReceiptCard extends StatelessWidget {
                                     ),
                                   ),
                                   TextSpan(
-                                    text: controller.formatMoney(controller.amountSent),
+                                    text: controller.formatMoney(controller.amountDueFromQr),
                                     style: TextStyle(
                                       color: ScanSuccessPage._primaryBlue,
                                       fontSize: 28 * scale,

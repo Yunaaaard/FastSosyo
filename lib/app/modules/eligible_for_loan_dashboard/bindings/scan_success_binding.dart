@@ -6,21 +6,20 @@ class ScanSuccessBinding extends Bindings {
   void dependencies() {
     final dynamic args = Get.arguments;
 
-    // Mock/placeholder data for UI testing
-    String qrData = 'https://example.com/qr?referenceNo=1123509321348893';
+    String qrData = '';
     String? from;
     String? to;
     String? referenceNo;
     String? dateTime;
-    double amountSent = 1834.08;
+    double amountSent = 0.0;
 
     if (args is Map<String, dynamic>) {
-      qrData = args['qrData'] as String? ?? qrData;
+      qrData = args['qrData'] as String? ?? '';
       from = args['from'] as String?;
       to = args['to'] as String?;
       referenceNo = args['referenceNo'] as String?;
       dateTime = args['dateTime'] as String?;
-      amountSent = args['amountSent'] as double? ?? 1834.08;
+      amountSent = args['amountSent'] as double? ?? 0.0;
     } else if (args is String) {
       qrData = args;
     }
@@ -28,8 +27,8 @@ class ScanSuccessBinding extends Bindings {
     Get.put(
       ScanSuccessController(
         qrData: qrData,
-        from: from ?? 'Daven Reez Nemenzo',
-        to: to ?? 'Fast Sosyo Nestle',
+        from: from,
+        to: to,
         referenceNo: referenceNo,
         dateTime: dateTime,
         amountSent: amountSent,

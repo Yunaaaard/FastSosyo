@@ -1,22 +1,65 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class ScanSuccessController extends GetxController {
   ScanSuccessController({
     required this.qrData,
-    this.from = 'Daven Reez Nemenzo',
-    this.to = 'Fast Sosyo Nestle',
+    this.from,
+    this.to,
     this.referenceNo,
     this.dateTime,
     this.amountSent = 1834.08,
-  });
+  }) {
+    _parsedQrJson = _parseQrJson();
+  }
 
   final String qrData;
-  final String from;
-  final String to;
+  final String? from;
+  final String? to;
   final String? referenceNo;
   final String? dateTime;
   final double amountSent;
+
+  late Map<String, dynamic>? _parsedQrJson;
+
+  Map<String, dynamic>? _parseQrJson() {
+    try {
+      return jsonDecode(qrData) as Map<String, dynamic>;
+    } catch (e) {
+      print('Error parsing QR JSON: $e');
+      return null;
+    }
+  }
+
+  // JSON getters with fallbacks
+  String get loanId => _parsedQrJson?['loanId'] as String? ?? 'N/A';
+  String get principalTitle => _parsedQrJson?['principalTitle'] as String? ?? to ?? 'N/A';
+  String get principalLogo => _parsedQrJson?['principalLogo'] as String? ?? '';
+  double get amountDueFromQr => (_parsedQrJson?['amountDue'] as num?)?.toDouble() ?? amountSent;
+  String get appliedDate => _parsedQrJson?['appliedDate'] as String? ?? '';
+  String get dueDate => _parsedQrJson?['dueDate'] as String? ?? '';
+  List<dynamic>? get products => _parsedQrJson?['products'] as List<dynamic>?;
+
+  String get formattedAppliedDate {
+    try {
+      if (appliedDate.isEmpty) return '';
+      final DateTime parsed = DateTime.parse(appliedDate);
+      return DateFormat('MM-dd-yy').format(parsed);
+    } catch (e) {
+      return appliedDate;
+    }
+  }
+
+  String get formattedDueDate {
+    try {
+      if (dueDate.isEmpty) return '';
+      final DateTime parsed = DateTime.parse(dueDate);
+      return DateFormat('MM-dd-yy').format(parsed);
+    } catch (e) {
+      return dueDate;
+    }
+  }
 
   // Simple computed getters - no reactive state needed
   String get formattedDateTime =>
